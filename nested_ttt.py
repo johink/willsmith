@@ -21,56 +21,27 @@ class NestedTTT(State):
             move, pos = action
             self.board[pos] = move
 
-        def check_winner(self):
+        def get_winner(self):
             """
-            Check for a winner by summing over columns, rows, and diagonals
-            Enum values cannot overlap, so 3 times Enum value means we have 3 in a row
-            """
-            for team in [TTTMove.X, TTTMove.O]:
-                if (np.any(self.board.sum(axis = 1) == team * 3) or
-                   np.any(self.board.sum(axis = 0) == team * 3) or
-                   np.diag(self.board).sum() == team * 3 or
-                   np.diag(self.board[::-1]).sum() == team * 3):
-                    return team
-
-            return None
-
-        def check_winner1(self):
-            """
-            Check for a winner using check_for_win function.
-            """
-            win = None
-            for team in [TTTMove.X, TTTMove.O]:
-                for row in self.board:
-                    if self.check_for_win(row, team):
-                        win = team
-                        break
-                for col in self.board.swapaxes(0, 1):
-                    if self.check_for_win(col, team):
-                        win = team
-                        break
-                for diag in [x.board.diagonal(), x.board[::-1].diagonal()]:
-                    if self.check_for_win(diag, team):
-                        win = team
-                        break
-
-            return win
-
-        def check_winner2(self):
-            """
-            Check for a winner using check_for_win function.
+            Determine if the game has been won, and returns the winning 
+            piece or None if the game is still ongoing.
             """
             winner = None
-            for team in [TTTMove.X, TTTMove.O]:
-                reduce_func = lambda x,y: x or self.check_for_win(y, team)
-                if (reduce(reduce_func, x.board, False) or
-                    reduce(reduce_func, x.board.swapaxes(0,1), False) or
-                    reduce(reduce_func, [x.board.diagonal(), x.board[::-1].diagonal()], False)):
-                    winner = team
+            for move in [TTTMove.X, TTTMove.O]:
+                    if self._check_if_move_won(move):
+                        winner = move
             return winner
             
+        def _check_if_move_won(self, move):
+            won = False
+            reduce_func = lambda x,y: x or self._check_axis_for_win(y, team)
+            if (reduce(reduce_func, x.board, False) or
+                reduce(reduce_func, x.board.swapaxes(0,1), False) or
+                reduce(reduce_func, [x.board.diagonal(), x.board[::-1].diagonal()], False)):
+                won = True
+            return won
 
-        def check_for_win(self, array, move):
+        def _check_axis_for_win(self, array, move):
             """
             Returns if all elements are the same as move.
 
@@ -96,10 +67,10 @@ class NestedTTT(State):
         the player has won the game, otherwise return None
         """
         self.inner_boards[outer_pos].take_action(action, inner_pos)
-        winner = self.inner_boards[outer_pos].check_winner()
+        winner = self.inner_boards[outer_pos].get_winner()
         if winner is not None:
             self.outer_board.board[outer_pos] = winner
-            if self.outer_board.check_winner():
+            if self.outer_board.get_winner():
                 return 1
 
         return None
@@ -114,18 +85,29 @@ class NestedTTT(State):
         self.inner_boards[outer_pos].take_action(inner_action)
         self._update_outer_board(outer_pos, inner_action)
 
-        super().take_action()
+        super().take_action()       # increment's State's agent_id, should probably be an inherited function
+
+    def is_terminal(self):
+        return self.outer_board.get_winner() is not None
 
     def _update_outer_board(self, outer_pos, inner_action):
         """
         Checks if inner board has been won and updates outer board if so.
         """
-        winner = self.inner_boards[outer_pos].check_winner()
+        winner = self.inner_boards[outer_pos].get_winner()
         if winner is not None:
             self.outer_board.take_action((outer_pos, winner))
 
-    def final(self):
-        return self.outer_board.check_winner() is not None
+    def win_check(self, agent_id):
+        """
+        Determines if the player with agent_id won the game
+        """
+        agent_move = self._agent_id_to_move(agent_id)
+        return agent_move == self.outer_board.get_winner()
+
+    def _agent_id_to_move(self, agent_id):
+        lookup = {0 : TTTMove.X, 1 : TTTMove.O}
+        return lookup[agent_id]
 
     def __str__(self):
         result = []

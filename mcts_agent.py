@@ -71,10 +71,10 @@ class MCTSAgent:
         """
         Plays out the game to its conclusion and returns the result.
         """
-        while not state.final():
+        while not state.is_terminal():
             state = state.take_random_action()
 
-        return state.win(self.agent_id)   # need some reference to agent to determine win or lose
+        return state.win_check(self.agent_id)
 
     def backpropagation(self, win, node):
         """

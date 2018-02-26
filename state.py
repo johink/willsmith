@@ -27,13 +27,13 @@ class State:
         random_action = choice(self.get_valid_actions)
         return self.take_action(random_action)
 
-    def win(self, agent_id):
+    def win_check(self, agent_id):
         """
         Returns True if the given agent has won the game, False otherwise.
         """
         raise NotImplementedError
 
-    def final(self):
+    def is_terminal(self):
         """
         Returns True if the game is in a terminal state, False otherwise.
         """
