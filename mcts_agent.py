@@ -1,7 +1,3 @@
-from math import log, sqrt
-from time import time
-
-
 class MCTSAgent:
     """
     Planning agent that makes decisions based on Monte Carlo Tree Search.
@@ -13,9 +9,6 @@ class MCTSAgent:
         Simulation      -   Play out game until reaching a terminal state
         Backpropagation -   Update win/trial counters for new node and all parents
     """
-
-    EXP_PARAM = sqrt(2)
-    NEW_NODE_TRIALS = 0.1       # what should this be?
 
 
     def __init__(self, state, agent_id):
@@ -32,28 +25,31 @@ class MCTSAgent:
         start_time = time()
 
         while runs < max_runs:  # and time() - start_time < 2
-            current_state, current_node = self.selection()
+            print(runs)
+            current_state, current_node = self.selection(self.state, self.root)
             new_node = self.expansion(current_state, current_node)
             win = self.simulation(current_state)
             self.backpropagation(win, new_node)
+            runs += 1
 
         best_action = self.root.max_value_estimate()
         return best_action
 
     def take_action(self, action):
-        self.state = self.state.take_action(action)
+        # need to handle case where we have not expanded that action
+        print(action)
         self.root = self.root.get_child(action)
 
-    def selection(self):
+    def selection(self, state, root):
         """
         Progresses through the tree of Nodes until a leaf is found.
         """
-        current_state = self.state
-        current_node = self.root
+        current_state = state.copy()
+        current_node = root
 
-        while current_node.has_children():
+        while len(set(current_state.get_legal_actions()) - set(current_node.children)) == 0:
             action = current_node.UCB(state, self.root.trials)  # root.trials == total number of trials
-            current_state = current_state.take_action(action)
+            current_state.take_action(action)
             current_node = current_node.get_child(action)
 
         return current_state, current_node
@@ -62,19 +58,22 @@ class MCTSAgent:
         """
         Handles creation of a new leaf in the Node tree.
         """
-        # create a new node for some action ?? where does that action come from
-        node.add_child(action, self.Node(node, not node.adversarial))
-        new_child = node.get_child(action)
+        # check for if we are in a terminal state before adding nodes ??
+        action = choice([action for action in state.get_legal_actions() if action not in node.children])
+        new_child = self.Node(node, not node.adversarial)
+        node.add_child(action, new_child)
         return new_child
 
     def simulation(self, state):
         """
         Plays out the game to its conclusion and returns the result.
         """
-        while not state.is_terminal():
-            state = state.take_random_action()
+        current_state = state.copy()
+        while not current_state.is_terminal():
+            action = current_state.generate_random_action()
+            current_state.take_action(action)
 
-        return state.win_check(self.agent_id)
+        return current_state.win_check(self.agent_id)
 
     def backpropagation(self, win, node):
         """
@@ -90,17 +89,26 @@ class MCTSAgent:
         Used internally by the agent to keep track of the results of trials
         after taking certain actions.
         """
+
+        EXP_PARAM = sqrt(2)
+        NEW_NODE_TRIALS = 0.1       # what should this be?
+
+
         def __init__(self, parent, adversarial = False):
             self.parent = parent
             self.children = dict() # action : node
             self.trials = 0
             self.wins = 0
+            self.adversarial = adversarial
+
+        def add_child(self, action, node):
+            self.children[action] = node
 
         def update_node(self, win):
             """
             Updates node using simulation result during backpropagation step.
             """
-            if win ^ adversarial: # either win+maximizing or lose+minimizing
+            if win ^ self.adversarial: # either win+maximizing or lose+minimizing
                 self.wins += 1
             self.trials += 1
 
@@ -111,7 +119,7 @@ class MCTSAgent:
             """
             Returns maximum action at the node given the current children.
             """
-            value_func = lambda x: self.children.get_child(x).value_estimate()
+            value_func = lambda x: self.get_child(x).value_estimate()
             return max(self.children, key=value_func)
 
         def UCB(self, state, total_trials):
@@ -123,16 +131,17 @@ class MCTSAgent:
                 exploration parameter *
                     sqrt(ln total trials / num trials at node)
             """
-            valid_actions = state.get_valid_actions()
+            valid_actions = state.get_legal_actions()
             results = {}
 
             for action in valid_actions:
-                value_estimate = 0
-                exploration_estimate = EXP_PARAM * sqrt(log(total_trials) / NEW_NODE_TRIALS)
+                #value_estimate = 0
+                #exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.NEW_NODE_TRIALS)
                 if action in self.children:
                     value_estimate = self.get_child(action).value_estimate()
-                    exploration_estimate = EXP_PARAM * sqrt(log(total_trials) / self.trials)
+                    exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.trials)
 
+                
                 results[action] = value_estimate + exploration_estimate
 
             return max(results.keys(), key=results.get)

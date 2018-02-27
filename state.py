@@ -6,8 +6,7 @@ class State:
     Base class to enforce the interface required by MCTSAgent.
     """
 
-    def __init__(self, action_space, agent_ids):
-        self.action_space = action_space
+    def __init__(self, agent_ids):
         self.agent_ids = agent_ids
         self.agent_turn = 0
 
@@ -21,11 +20,11 @@ class State:
         """
         Returns an updated state based on the given action
         """
-        self.increment_agent_turn()
+        raise NotImplementedError
 
-    def take_random_action(self):
-        random_action = choice(self.get_valid_actions)
-        return self.take_action(random_action)
+    def generate_random_action(self):
+        random_action = choice(self.get_legal_actions())
+        return random_action
 
     def win_check(self, agent_id):
         """
@@ -46,3 +45,4 @@ class State:
         self.agent_turn += 1
         if self.agent_turn == len(self.agent_ids):
             self.agent_turn = 0
+
