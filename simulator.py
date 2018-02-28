@@ -4,7 +4,6 @@ from mcts_agent import MCTSAgent
 
 game = NestedTTT([0,1])
 p1 = MCTSAgent(game, 0)
-p2 = MCTSAgent(game, 1)
 
 while not game.is_terminal():
     action = p1.search()

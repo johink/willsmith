@@ -1,3 +1,8 @@
+from math import log, sqrt
+from random import choice
+from time import time
+
+
 class MCTSAgent:
     """
     Planning agent that makes decisions based on Monte Carlo Tree Search.
@@ -135,8 +140,8 @@ class MCTSAgent:
             results = {}
 
             for action in valid_actions:
-                #value_estimate = 0
-                #exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.NEW_NODE_TRIALS)
+                value_estimate = 0
+                exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.NEW_NODE_TRIALS)
                 if action in self.children:
                     value_estimate = self.get_child(action).value_estimate()
                     exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.trials)
