@@ -50,7 +50,7 @@ class TTTView:
         self.inner_boards = [[self._generate_inner_board(r,c) for r in range(self.board_size)] for c in range(self.board_size)]
     
     def _generate_inner_board(self, row, col):
-        return [[Button(self.outer_board[row][col]) for _ in range(self.board_size)] for _ in range(self.board_size)]
+        return [[Button(self.outer_board[row][col], text = str(TTTMove.BLANK)) for _ in range(self.board_size)] for _ in range(self.board_size)]
 
     def _initialize_informational_labels(self):
         self.turn_indicator_label = Label(self.root, text = self.TURN_INDICATOR_LABEL)
@@ -74,8 +74,13 @@ class TTTView:
         self.turn_indicator_label.grid(row = 0, column = self.board_size + 1)
         self.turn_icon.grid(row = 1, column = self.board_size + 1)
 
-    def set_button_commands(self, callback):
+    def set_button_commands(self, callback_generator):
         """
         Used by controller to set the callbacks for the inner_board buttons.
         """
-        pass
+        for i, row in enumerate(self.inner_boards):
+            for j, button in enumerate(row):
+                self._set_button_command(callback_generator, button, i, j)
+
+    def _set_button_command(self, callback_generator, button, row, col):
+        button["command"] = callback_generator(button, i, j)

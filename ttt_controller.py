@@ -1,3 +1,4 @@
+from ttt_move import TTTMove
 from ttt_view import TTTView
 
 
@@ -12,5 +13,19 @@ class TTTViewController:
 
     def initialize_view(self, board_size);
         view = TTTView(board_size)
-        # call set_button_commands with proper callback
+        view.set_button_commands(self._board_button)
         return view
+
+    def _board_button(self, button, row, col):
+        """
+        Generates a function that:
+        If the button is a legal move, calls for update to the game state 
+        and updates the button text.
+        """
+        def f():
+            self._is_legal_move(button)
+            # TODO
+        return f
+
+    def _is_legal_move(self, button):
+        return button["text"] == str(TTTMove.BLANK)
