@@ -3,10 +3,10 @@ from mcts_agent import MCTSAgent
 
 
 game = NestedTTT([0,1])
-p1 = MCTSAgent(game, 0)
+p1 = MCTSAgent(0)
 
 while not game.is_terminal():
-    action = p1.search()
+    action = p1.search(game.copy())
     p1.take_action(action)
     game.take_action(action)
     

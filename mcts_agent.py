@@ -16,22 +16,22 @@ class MCTSAgent:
     """
 
 
-    def __init__(self, state, agent_id):
-        self.state = state
+    def __init__(self, agent_id):
         self.root = self.Node(None, False)
         self.agent_id = agent_id
 
-    def search(self, max_runs = 1000, max_time = 2):
+    def search(self, state, max_runs = 1000, max_time = 2):
         """
         Searches for the optimal action to take by running max_runs
-        number of playouts.
+        number of playouts and recording the results.
         """
         runs = 0
         start_time = time()
 
         while runs < max_runs:  # and time() - start_time < 2
-            print(runs)
-            current_state, current_node = self.selection(self.state, self.root)
+            #print(runs)
+            current_state = state.copy()
+            current_state, current_node = self.selection(current_state, self.root)
             new_node = self.expansion(current_state, current_node)
             win = self.simulation(current_state)
             self.backpropagation(win, new_node)
@@ -42,22 +42,20 @@ class MCTSAgent:
 
     def take_action(self, action):
         # need to handle case where we have not expanded that action
+        # and it does not exist in the Node tree
         print(action)
         self.root = self.root.get_child(action)
 
-    def selection(self, state, root):
+    def selection(self, state, node):
         """
         Progresses through the tree of Nodes until a leaf is found.
         """
-        current_state = state.copy()
-        current_node = root
+        while len(set(state.get_legal_actions()) - set(node.children)) == 0:
+            action = node.UCB(state, self.root.trials)  # root.trials == total number of trials
+            state.take_action(action)
+            node = node.get_child(action)
 
-        while len(set(current_state.get_legal_actions()) - set(current_node.children)) == 0:
-            action = current_node.UCB(state, self.root.trials)  # root.trials == total number of trials
-            current_state.take_action(action)
-            current_node = current_node.get_child(action)
-
-        return current_state, current_node
+        return state, node
 
     def expansion(self, state, node):
         """
@@ -73,12 +71,11 @@ class MCTSAgent:
         """
         Plays out the game to its conclusion and returns the result.
         """
-        current_state = state.copy()
-        while not current_state.is_terminal():
-            action = current_state.generate_random_action()
-            current_state.take_action(action)
+        while not state.is_terminal():
+            action = state.generate_random_action()
+            state.take_action(action)
 
-        return current_state.win_check(self.agent_id)
+        return state.win_check(self.agent_id)
 
     def backpropagation(self, win, node):
         """
