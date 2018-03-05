@@ -4,6 +4,7 @@ from functools import reduce
 from game import Game
 from ttt_move import TTTMove
 from copy import deepcopy
+from itertools import product
 
 
 class NestedTTT(Game):
@@ -20,8 +21,8 @@ class NestedTTT(Game):
 
     def __init__(self, agent_ids, board_size = STANDARD_BOARD_SIZE):
         self.board_size = board_size
-        self.outer_board = self.Board(self.board_size)
-        self.inner_boards = [[self.Board(self.board_size) for _ in range(self.board_size)] for _ in range(self.board_size)]
+        self.outer_board = Board(self.board_size)
+        self.inner_boards = [[Board(self.board_size) for _ in range(self.board_size)] for _ in range(self.board_size)]
 
         bs = self.board_size
         self.legal_positions = {((r, c), (ir, ic)) for r in range(bs) for c in range(bs) for ir in range(bs) for ic in range(bs)}
@@ -90,56 +91,90 @@ class NestedTTT(Game):
                 result.append("-"*20)
         return "\n".join(result)
 
-    class Board:
-        def __init__(self, board_size):
-            self.board_size = board_size
-            self.board = np.full((self.board_size, self.board_size), TTTMove.BLANK)
+class Board:
 
-        def take_action(self, action):
-            """
-            Applies the action to the board.
-            Returns whether the board is won or not after this action.
-            """
-            pos, move = action
-            self.board[pos] = move
-            return self.check_if_winner(action)
+    @staticmethod
+    def generate_winning_positions():
+        STANDARD_BOARD_SIZE = 3
+        winning_positions = set()
+        other_moves = [TTTMove.BLANK, TTTMove.X, TTTMove.O]
+        all_possibilities = list(product(other_moves, repeat = (STANDARD_BOARD_SIZE ** 2 - STANDARD_BOARD_SIZE)))
 
-        def get_winner(self):
-            """
-            Returns the move that won the board or None if it is still ongoing.
-            """
-            winner = None
-            for move in [TTTMove.X, TTTMove.O]:
-                if self.check_if_winner((None, move)):
-                    winner = move
-                    break
-            return winner
+        for move in [TTTMove.X, TTTMove.O]:
+            winner = (move,) * STANDARD_BOARD_SIZE
+            for possibility in all_possibilities:
+                #Creating row wins
+                for r in range(STANDARD_BOARD_SIZE):
+                    board = []
+                    pcopy = list(possibility)
+                    for i in range(STANDARD_BOARD_SIZE):
+                        if i == r:
+                            board.append(winner)
+                        else:
+                            board.append((pcopy.pop(), pcopy.pop(), pcopy.pop()))
+                    winning_positions.add(tuple(board))
 
-        def check_if_winner(self, action):
-            """
-            Determine if the player with move in the action won the board.
-            """
-            pos, move = action
-            if pos is not None:
-                r, c = pos
-                won = np.all(self.board[:,c] == move) or np.all(self.board[r] == move)
-                if r == c and not won:
-                    won = np.all(np.diag(self.board) == move)
-                if r + c == (self.board_size - 1) and not won:
-                    won = np.all(np.diag(self.board[::-1]) == move)
-            else:
-                reduce_func = lambda x,y: x or self._check_axis_for_win(y, move)
-                won = (reduce(reduce_func, self.board, False) or
-                        reduce(reduce_func, self.board.swapaxes(0,1), False) or
-                        reduce(reduce_func, [self.board.diagonal(), self.board[::-1].diagonal()], False))
-            return won
+                #Creating column wins
+                for col in range(STANDARD_BOARD_SIZE):
+                    board = []
+                    pcopy = list(possibility)
+                    for _ in range(STANDARD_BOARD_SIZE):
+                        board.append(tuple((move if curr == col else pcopy.pop() for curr in range(STANDARD_BOARD_SIZE))))
+                    winning_positions.add(tuple(board))
 
-        def _check_axis_for_win(self, array, move):
-            """
-            Returns if all elements are the same as move.
+                #Creating diagonal wins
+                board = []
+                pcopy = list(possibility)
+                for d in range(STANDARD_BOARD_SIZE):
+                    board.append(tuple(move if i == d else pcopy.pop() for i in range(STANDARD_BOARD_SIZE)))
+                winning_positions.add(tuple(board))
 
-            Uses the fact that sets do not contain duplicate items to
-            quickly determine if there is a complete row.
-            """
-            move_set = set(array).union({move})
-            return len(move_set) == 1
+                #Creating counter-diagonal wins
+                board = []
+                pcopy = list(possibility)
+                for d in range(NestedTTT.STANDARD_BOARD_SIZE):
+                    board.append(tuple(move if (i + d) == (STANDARD_BOARD_SIZE - 1) else pcopy.pop() for i in range(STANDARD_BOARD_SIZE)))
+                winning_positions.add(tuple(board))
+        return winning_positions
+
+    winning_positions = generate_winning_positions.__func__()
+
+    def __init__(self, board_size):
+        self.board_size = board_size
+        self.board = np.full((self.board_size, self.board_size), TTTMove.BLANK)
+
+    def take_action(self, action):
+        """
+        Applies the action to the board.
+        Returns whether the board is won or not after this action.
+        """
+        pos, move = action
+        self.board[pos] = move
+        return self.check_if_winner(action)
+
+    def get_winner(self):
+        """
+        Returns the move that won the board or None if it is still ongoing.
+        """
+        winner = None
+        for move in [TTTMove.X, TTTMove.O]:
+            if self.check_if_winner((None, move)):
+                winner = move
+                break
+        return winner
+
+    def check_if_winner(self, action):
+        """
+        Determine if the player with move in the action won the board.
+        """
+        return tuple(map(tuple, self.board)) in self.winning_positions
+
+    def _check_axis_for_win(self, array, move):
+        """
+        Returns if all elements are the same as move.
+
+        Uses the fact that sets do not contain duplicate items to
+        quickly determine if there is a complete row.
+        """
+        move_set = set(array).union({move})
+        return len(move_set) == 1
