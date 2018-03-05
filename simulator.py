@@ -19,5 +19,5 @@ while not game.is_terminal():
     print(chr(27) + "[2J")      # clears the terminal
     print(game)
 
-    input()
-
+    input("Press enter to progress.")
+    #break   # end game early for profiling

@@ -1,12 +1,12 @@
 import numpy as np
 
 from functools import reduce
-from state import State
+from game import Game
 from ttt_move import TTTMove
 from copy import deepcopy
 
 
-class NestedTTT(State):
+class NestedTTT(Game):
     """
     Action :: ((or, oc), ((ir, ic), move))
     NestedTTTAction :: (outer_position, BoardAction)
@@ -14,13 +14,17 @@ class NestedTTT(State):
     BoardAction :: (position, move)
     """
 
+
     STANDARD_BOARD_SIZE = 3
+
 
     def __init__(self, agent_ids, board_size = STANDARD_BOARD_SIZE):
         self.board_size = board_size
         self.outer_board = self.Board(self.board_size)
         self.inner_boards = [[self.Board(self.board_size) for _ in range(self.board_size)] for _ in range(self.board_size)]
-        self.is_draw = False
+
+        bs = self.board_size
+        self.legal_positions = {((r, c), (ir, ic)) for r in range(bs) for c in range(bs) for ir in range(bs) for ic in range(bs)}
 
         super().__init__(agent_ids)
 
@@ -29,12 +33,7 @@ class NestedTTT(State):
 
     def get_legal_actions(self):
         move = self._agent_id_to_move(self.agent_turn)
-        bs = self.board_size
-        results = [((r, c), ((ir, ic), move)) for r in range(bs) for c in range(bs) for ir in range(bs) for ic in range(bs)
-                   if self.outer_board.board[r,c] == TTTMove.BLANK and self.inner_boards[r][c].board[ir, ic] == TTTMove.BLANK]
-
-        self.is_draw = bool(results)
-        return results
+        return [(outer_pos, (inner_pos, move)) for outer_pos, inner_pos  in self.legal_positions]
 
     def get_state(self):
         return self.board
@@ -42,27 +41,31 @@ class NestedTTT(State):
     def take_action(self, action):
         """
         Applies the action to the game and updates the outer board if necessary.
+        Also removes now illegal positions from self.legal_positions
         """
         outer_pos, inner_action = action
         r, c = outer_pos
-        self.inner_boards[r][c].take_action(inner_action)
-        self._update_outer_board(outer_pos, inner_action)
+        inner_pos, move = inner_action
+        board_won = self.inner_boards[r][c].take_action(inner_action)
+        if board_won:
+            self.outer_board.take_action((outer_pos, move))
+
+        self._remove_illegal_positions(outer_pos, inner_pos, board_won)
 
         self.increment_agent_turn()
+
+    def _remove_illegal_positions(self, outer_pos, inner_pos, board_won):
+        """
+        Clears positions from self.legal_positions based on action taken and if
+        a nested game was completed.
+        """
+        self.legal_positions.remove((outer_pos, inner_pos))
+        if board_won:
+            self.legal_positions -= {(outer_pos, (r, c)) for r in range(self.board_size) for c in range(self.board_size)}
 
     def is_terminal(self):
         winner = self.outer_board.get_winner() is not None
         return winner or not self.get_legal_actions()
-
-    def _update_outer_board(self, outer_pos, inner_action):
-        """
-        Checks if inner board has been won and updates outer board if so.
-        """
-        # does not handle draws on the outer board
-        r, c = outer_pos
-        winner = self.inner_boards[r][c].get_winner()
-        if winner is not None:
-            self.outer_board.take_action((outer_pos, winner))
 
     def win_check(self, agent_id):
         """
@@ -71,7 +74,7 @@ class NestedTTT(State):
         win = False
         if self.is_terminal():
             agent_move = self._agent_id_to_move(agent_id)
-            win = agent_move == self.outer_board.get_winner()
+            win = self.outer_board.check_if_winner((None, agent_move))
         return win
 
     def _agent_id_to_move(self, agent_id):
@@ -95,28 +98,40 @@ class NestedTTT(State):
         def take_action(self, action):
             """
             Applies the action to the board.
+            Returns whether the board is won or not after this action.
             """
             pos, move = action
             self.board[pos] = move
+            return self.check_if_winner(action)
 
         def get_winner(self):
             """
-            Determine if the game has been won, and returns the winning
-            piece or None if the game is still ongoing.
+            Returns the move that won the board or None if it is still ongoing.
             """
             winner = None
             for move in [TTTMove.X, TTTMove.O]:
-                    if self._check_if_move_won(move):
-                        winner = move
+                if self.check_if_winner((None, move)):
+                    winner = move
+                    break
             return winner
 
-        def _check_if_move_won(self, move):
-            won = False
-            reduce_func = lambda x,y: x or self._check_axis_for_win(y, move)
-            if (reduce(reduce_func, self.board, False) or
-                reduce(reduce_func, self.board.swapaxes(0,1), False) or
-                reduce(reduce_func, [self.board.diagonal(), self.board[::-1].diagonal()], False)):
-                won = True
+        def check_if_winner(self, action):
+            """
+            Determine if the player with move in the action won the board.
+            """
+            pos, move = action
+            if pos is not None:
+                r, c = pos
+                won = np.all(self.board[:,c] == move) or np.all(self.board[r] == move)
+                if r == c and not won:
+                    won = np.all(np.diag(self.board) == move)
+                if r + c == (self.board_size - 1) and not won:
+                    won = np.all(np.diag(self.board[::-1]) == move)
+            else:
+                reduce_func = lambda x,y: x or self._check_axis_for_win(y, move)
+                won = (reduce(reduce_func, self.board, False) or
+                        reduce(reduce_func, self.board.swapaxes(0,1), False) or
+                        reduce(reduce_func, [self.board.diagonal(), self.board[::-1].diagonal()], False))
             return won
 
         def _check_axis_for_win(self, array, move):

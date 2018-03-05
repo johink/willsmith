@@ -1,9 +1,9 @@
 from random import choice
 
 
-class State:
+class Game:
     """
-    Base class to enforce the interface required by MCTSAgent.
+    Base class to enforce the interface required by the simulator.
     """
 
     def __init__(self, agent_ids):
