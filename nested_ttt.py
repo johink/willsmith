@@ -13,7 +13,6 @@ class NestedTTT(Game):
     BoardAction :: (position, move)
     """
 
-
     def __init__(self, agent_ids):
         bs = BOARD_SIZE
 
@@ -32,12 +31,10 @@ class NestedTTT(Game):
         move = self._agent_id_to_move(self.agent_turn)
         return [(outer_pos, (inner_pos, move)) for outer_pos, inner_pos  in self.legal_positions]
 
-    def no_more_actions(self):
-        return not bool(self.legal_positions)
-
     def get_state(self):
         return self.board
 
+    @Game.progress_game
     def take_action(self, action):
         """
         Applies the action to the game and updates the outer board if necessary.
@@ -52,13 +49,13 @@ class NestedTTT(Game):
 
         self._remove_illegal_positions(outer_pos, inner_pos, board_won)
 
-        self.increment_agent_turn()
-
     def undo_action(self, action):
         """
         Removes the effect of the action on the board, under the assumption 
         that this is the last action taken.
         """
+        # has a bug where progress game is called and the agent_turn 
+        # is off by the number of undo_action calls
         outer_pos, inner_action = action
         inner_pos, _ = inner_action
         r, c = outer_pos

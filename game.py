@@ -46,11 +46,22 @@ class Game:
         """
         raise NotImplementedError
 
-    def increment_agent_turn(self):
+    @classmethod
+    def progress_game(cls, func):
+        """
+        Decorator for use by sub-classes, to call _increment_agent_turn 
+        without an explicit method call.
+        """
+        def f(self, *args, **kwargs):
+            result = func(self, *args, **kwargs)
+            self._increment_agent_turn()
+            return result
+        return f
+
+    def _increment_agent_turn(self):
         """
         Moves to the next agent's id, wrapping around at the end of the list.
         """
         self.agent_turn += 1
         if self.agent_turn == len(self.agent_ids):
             self.agent_turn = 0
-

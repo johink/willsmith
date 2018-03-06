@@ -52,19 +52,21 @@ class MCTSAgent(Agent):
 
     def _selection(self, state, node):
         """
-        Progresses through the tree of Nodes until a leaf is found.
+        Progresses through the tree of Nodes, starting at node, until a leaf 
+        is found.
         """
-        unexplored_actions = set(state.get_legal_actions()) - set(node.children)
-        while not unexplored_actions:
-            if state.no_more_actions():
-                return state, node, True
+        unexplored_actions = set(state.get_legal_actions()) - set(node.children.keys())
+        terminal = state.is_terminal()
+        while not unexplored_actions and not terminal:
             action = node.UCB(state, self.root.trials)  # root.trials == total number of trials
 
             state.take_action(action)
             node = node.get_child(action)
-            unexplored_actions = set(state.get_legal_actions()) - set(node.children)
 
-        return state, node, False
+            unexplored_actions = set(state.get_legal_actions()) - set(node.children.keys())
+            terminal = state.is_terminal()
+
+        return state, node, terminal
 
     def _expansion(self, state, node):
         """
@@ -87,7 +89,7 @@ class MCTSAgent(Agent):
 
     def _random_simulation(self, state):
         """
-        Randomly chooses moves to progress the state with no logic.
+        Randomly chooses actions to progress the state with no logic.
         """
         action = state.generate_random_action()
         return action
