@@ -1,9 +1,10 @@
+from agent import Agent
 from math import log, sqrt
 from random import choice
 from time import time
 
 
-class MCTSAgent:
+class MCTSAgent(Agent):
     """
     Planning agent that makes decisions based on Monte Carlo Tree Search.
     Computes a number of playouts using the following steps, then chooses the
@@ -18,7 +19,7 @@ class MCTSAgent:
 
     def __init__(self, agent_id):
         self.root = self.Node(None, False)
-        self.agent_id = agent_id
+        super().__init__(agent_id)
 
     def search(self, state, max_runs = 1000, max_time = 2):
         """
@@ -30,14 +31,14 @@ class MCTSAgent:
 
         while runs < max_runs:  # and time() - start_time < 2
             current_state = state.copy()
-            current_state, current_node, game_over = self.selection(current_state, self.root)
+            current_state, current_node, game_over = self._selection(current_state, self.root)
             if not game_over:
-                new_state, new_node = self.expansion(current_state, current_node)
-                win = self.simulation(new_state)
-                self.backpropagation(win, new_node)
+                new_state, new_node = self._expansion(current_state, current_node)
+                win = self._simulation(new_state)
+                self._backpropagation(win, new_node)
             else:
-                win = self.simulation(current_state)
-                self.backpropagation(win, current_node)
+                win = self._simulation(current_state)
+                self._backpropagation(win, current_node)
             runs += 1
 
         best_action = self.root.max_value_estimate()
@@ -49,7 +50,7 @@ class MCTSAgent:
         except KeyError:
             self.root = self.Node(None, not self.root.adversarial)
 
-    def selection(self, state, node):
+    def _selection(self, state, node):
         """
         Progresses through the tree of Nodes until a leaf is found.
         """
@@ -65,7 +66,7 @@ class MCTSAgent:
 
         return state, node, False
 
-    def expansion(self, state, node):
+    def _expansion(self, state, node):
         """
         Handles creation of a new leaf in the Node tree.
         """
@@ -75,17 +76,24 @@ class MCTSAgent:
         state.take_action(action)
         return state, new_child
 
-    def simulation(self, state):
+    def _simulation(self, state):
         """
         Plays out the game to its conclusion and returns the result.
+        """
+        state = self._random_simulation(state)
+        return state.win_check(self.agent_id)
+
+    def _random_simulation(self, state):
+        """
+        Randomly chooses moves to progress the state with no logic.
         """
         while not state.is_terminal():
             action = state.generate_random_action()
             state.take_action(action)
 
-        return state.win_check(self.agent_id)
-
-    def backpropagation(self, win, node):
+        return state
+        
+    def _backpropagation(self, win, node):
         """
         Propogates simluation result up the tree of nodes.
         """
@@ -120,14 +128,14 @@ class MCTSAgent:
                 self.wins += 1
             self.trials += 1
 
-        def value_estimate(self):
+        def _value_estimate(self):
             return self.wins / self.trials
 
         def max_value_estimate(self):
             """
             Returns maximum action at the node given the current children.
             """
-            value_func = lambda x: self.get_child(x).value_estimate()
+            value_func = lambda x: self.get_child(x)._value_estimate()
             return max(self.children, key=value_func)
 
         def UCB(self, state, total_trials):
@@ -143,7 +151,7 @@ class MCTSAgent:
             results = {}
 
             for action in valid_actions:
-                value_estimate = self.get_child(action).value_estimate()
+                value_estimate = self.get_child(action)._value_estimate()
                 exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.trials)
                 
                 results[action] = value_estimate + exploration_estimate

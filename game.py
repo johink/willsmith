@@ -3,7 +3,8 @@ from random import choice
 
 class Game:
     """
-    Base class to enforce the interface required by the simulator.
+    Base class to enforce the game interface required by the simulator and 
+    agents to play.
     """
 
     def __init__(self, agent_ids):
