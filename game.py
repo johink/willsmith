@@ -10,6 +10,13 @@ class Game:
         self.agent_ids = agent_ids
         self.agent_turn = 0
 
+    def copy(self):
+        """
+        Returns a copy of the state, so that agents can manipulate it as 
+        they decide on actions.
+        """
+        raise NotImplementedError()
+
     def get_legal_actions(self):
         """
         Returns a list of the actions in the action space that are still legal.
