@@ -31,6 +31,9 @@ class NestedTTT(Game):
         move = self._agent_id_to_move(self.agent_turn)
         return [(outer_pos, (inner_pos, move)) for outer_pos, inner_pos  in self.legal_positions]
 
+    def no_more_actions(self):
+        return not bool(self.legal_positions)
+
     def get_state(self):
         return self.board
 

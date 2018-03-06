@@ -29,43 +29,51 @@ class MCTSAgent:
         start_time = time()
 
         while runs < max_runs:  # and time() - start_time < 2
-            #print(runs)
             current_state = state.copy()
-            current_state, current_node = self.selection(current_state, self.root)
-            new_node = self.expansion(current_state, current_node)
-            win = self.simulation(current_state)
-            self.backpropagation(win, new_node)
+            current_state, current_node, game_over = self.selection(current_state, self.root)
+            if not game_over:
+                new_state, new_node = self.expansion(current_state, current_node)
+                win = self.simulation(new_state)
+                self.backpropagation(win, new_node)
+            else:
+                win = self.simulation(current_state)
+                self.backpropagation(win, current_node)
             runs += 1
 
         best_action = self.root.max_value_estimate()
         return best_action
 
     def take_action(self, action):
-        # need to handle case where we have not expanded that action
-        # and it does not exist in the Node tree
-        print(action)
-        self.root = self.root.get_child(action)
+        try:
+            self.root = self.root.get_child(action)
+        except KeyError:
+            self.root = self.Node(None, not self.root.adversarial)
 
     def selection(self, state, node):
         """
         Progresses through the tree of Nodes until a leaf is found.
         """
-        while len(set(state.get_legal_actions()) - set(node.children)) == 0:
+        unexplored_actions = set(state.get_legal_actions()) - set(node.children)
+        while not unexplored_actions:
+            if state.no_more_actions():
+                return state, node, True
             action = node.UCB(state, self.root.trials)  # root.trials == total number of trials
+
             state.take_action(action)
             node = node.get_child(action)
+            unexplored_actions = set(state.get_legal_actions()) - set(node.children)
 
-        return state, node
+        return state, node, False
 
     def expansion(self, state, node):
         """
         Handles creation of a new leaf in the Node tree.
         """
-        # check for if we are in a terminal state before adding nodes ??
         action = choice([action for action in state.get_legal_actions() if action not in node.children])
         new_child = self.Node(node, not node.adversarial)
         node.add_child(action, new_child)
-        return new_child
+        state.take_action(action)
+        return state, new_child
 
     def simulation(self, state):
         """
@@ -93,8 +101,6 @@ class MCTSAgent:
         """
 
         EXP_PARAM = sqrt(2)
-        NEW_NODE_TRIALS = 0.1       # what should this be?
-
 
         def __init__(self, parent, adversarial = False):
             self.parent = parent
@@ -137,12 +143,8 @@ class MCTSAgent:
             results = {}
 
             for action in valid_actions:
-                value_estimate = 0
-                exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.NEW_NODE_TRIALS)
-                if action in self.children:
-                    value_estimate = self.get_child(action).value_estimate()
-                    exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.trials)
-
+                value_estimate = self.get_child(action).value_estimate()
+                exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.trials)
                 
                 results[action] = value_estimate + exploration_estimate
 
