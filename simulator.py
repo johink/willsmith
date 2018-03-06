@@ -19,6 +19,5 @@ while not game.is_terminal():
         p2.take_action(action)
         game.take_action(action)
 
-
     print(chr(27) + "[2J")      # clears the terminal
     print(game)

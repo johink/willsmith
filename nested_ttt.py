@@ -21,6 +21,7 @@ class NestedTTT(Game):
         self.inner_boards = [[TTTBoard() for _ in range(bs)] for _ in range(bs)]
 
         self.legal_positions = {((r, c), (ir, ic)) for r in range(bs) for c in range(bs) for ir in range(bs) for ic in range(bs)}
+        self.undo_positions = set()
 
         super().__init__(agent_ids)
 
@@ -53,13 +54,30 @@ class NestedTTT(Game):
 
         self.increment_agent_turn()
 
+    def undo_action(self, action):
+        """
+        Removes the effect of the action on the board, under the assumption 
+        that this is the last action taken.
+        """
+        outer_pos, inner_action = action
+        inner_pos, _ = inner_action
+        r, c = outer_pos
+        ir, ic = inner_pos
+
+        self.legal_positions.update(self.undo_positions)
+        self.outer_board.board[r][c] = TTTMove.BLANK
+        self.inner_boards[r][c].board[ir][ic] = TTTMove.BLANK
+
     def _remove_illegal_positions(self, outer_pos, inner_pos, board_won):
         """
         Clears positions from self.legal_positions based on action taken and if
         a nested game was completed.
         """
         self.legal_positions.remove((outer_pos, inner_pos))
+        self.undo_positions = {(outer_pos, inner_pos)}
         if board_won:
+            removed_actions = {(outer_pos, (r, c)) for r in range(BOARD_SIZE) for c in range(BOARD_SIZE)}
+            self.undo_positions = (self.legal_positions.intersection(removed_actions)).union(self.undo_positions)
             self.legal_positions -= {(outer_pos, (r, c)) for r in range(BOARD_SIZE) for c in range(BOARD_SIZE)}
 
     def is_terminal(self):

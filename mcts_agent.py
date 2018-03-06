@@ -80,18 +80,17 @@ class MCTSAgent(Agent):
         """
         Plays out the game to its conclusion and returns the result.
         """
-        state = self._random_simulation(state)
+        while not state.is_terminal():
+            action = self._random_simulation(state)
+            state.take_action(action)
         return state.win_check(self.agent_id)
 
     def _random_simulation(self, state):
         """
         Randomly chooses moves to progress the state with no logic.
         """
-        while not state.is_terminal():
-            action = state.generate_random_action()
-            state.take_action(action)
-
-        return state
+        action = state.generate_random_action()
+        return action
         
     def _backpropagation(self, win, node):
         """
@@ -100,7 +99,6 @@ class MCTSAgent(Agent):
         while node is not None:
             node.update_node(win)
             node = node.parent
-
 
     class Node:
         """
