@@ -1,3 +1,4 @@
+from nested_ttt import NestedTTT
 from ttt_move import TTTMove
 from ttt_view import TTTView
 
@@ -8,24 +9,24 @@ class TTTViewController:
     simulator to send/receive inputs/game actions.
     """
 
-    def __init__(self, board_size):
-        self.view = self.initialize_view(board_size)
+    def __init__(self):
+        self.view = self.initialize_view()
 
-    def initialize_view(self, board_size);
-        view = TTTView(board_size)
+    def initialize_view(self);
+        view = TTTView()
         view.set_button_commands(self._board_button)
         return view
 
-    def _board_button(self, button, row, col):
+    def _board_button(self, button, row, col, inner_row, inner_col):
         """
         Generates a function that:
         If the button is a legal move, calls for update to the game state 
         and updates the button text.
         """
         def f():
-            self._is_legal_move(button)
-            # TODO
+            # get current player move
+            # form action with move/row/col/irow/icol
+            # attempt to take action for current player
+            # if the action was taken, update the button text
+            # otherwise maybe a pop-up
         return f
-
-    def _is_legal_move(self, button):
-        return button["text"] == str(TTTMove.BLANK)

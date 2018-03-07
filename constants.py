@@ -1,3 +1,0 @@
-
-
-BOARD_SIZE = 3

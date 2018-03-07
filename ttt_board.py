@@ -1,4 +1,3 @@
-from constants import BOARD_SIZE
 from itertools import product
 from ttt_move import TTTMove
 
@@ -8,10 +7,53 @@ class TTTBoard:
     Represents a tic-tac-toe board and the operations that go with it.
     Used for both inner and outer boards of NestedTTT.
     """
+    
+    BOARD_SIZE = 3
+    winning_positions = None
+
+    def __init__(self):
+        self.board = [[TTTMove.BLANK for _ in range(TTTBoard.BOARD_SIZE)] for _ in range(TTTBoard.BOARD_SIZE)]
+
+    def take_action(self, action):
+        """
+        Applies the action to the board.
+        Returns whether the board is won or not after this action.
+        """
+        pos, move = action
+        r, c = pos
+        self.board[r][c] = move
+        return self.check_if_winner(action)
+
+    def get_winner(self):
+        """
+        Returns the move that won the board or None if it is still ongoing.
+        """
+        winner = None
+        for move in [TTTMove.X, TTTMove.O]:
+            if self.check_if_winner((None, move)):
+                winner = move
+                break
+        return winner
+
+    def check_if_winner(self, action):
+        """
+        Determine if the player with move in the action won the board.
+        """
+        return tuple(map(tuple, self.board)) in self.winning_positions
+
+    def _check_axis_for_win(self, array, move):
+        """
+        Returns if all elements are the same as move.
+
+        Uses the fact that sets do not contain duplicate items to
+        quickly determine if there is a complete row.
+        """
+        move_set = set(array).union({move})
+        return len(move_set) == 1
 
     @staticmethod
     def generate_winning_positions():
-        bs = BOARD_SIZE
+        bs = TTTBoard.BOARD_SIZE
         winning_positions = set()
         other_moves = [TTTMove.BLANK, TTTMove.X, TTTMove.O]
         all_possibilities = list(product(other_moves, repeat = (bs ** 2 - bs)))
@@ -53,44 +95,6 @@ class TTTBoard:
                 winning_positions.add(tuple(board))
         return winning_positions
 
-    winning_positions = generate_winning_positions.__func__()
 
-    def __init__(self):
-        self.board = [[TTTMove.BLANK for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-
-    def take_action(self, action):
-        """
-        Applies the action to the board.
-        Returns whether the board is won or not after this action.
-        """
-        pos, move = action
-        r, c = pos
-        self.board[r][c] = move
-        return self.check_if_winner(action)
-
-    def get_winner(self):
-        """
-        Returns the move that won the board or None if it is still ongoing.
-        """
-        winner = None
-        for move in [TTTMove.X, TTTMove.O]:
-            if self.check_if_winner((None, move)):
-                winner = move
-                break
-        return winner
-
-    def check_if_winner(self, action):
-        """
-        Determine if the player with move in the action won the board.
-        """
-        return tuple(map(tuple, self.board)) in self.winning_positions
-
-    def _check_axis_for_win(self, array, move):
-        """
-        Returns if all elements are the same as move.
-
-        Uses the fact that sets do not contain duplicate items to
-        quickly determine if there is a complete row.
-        """
-        move_set = set(array).union({move})
-        return len(move_set) == 1
+# initializes the winning_positions class attribute for use in its methods
+TTTBoard.winning_positions = TTTBoard.generate_winning_positions()

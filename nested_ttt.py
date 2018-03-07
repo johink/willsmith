@@ -1,4 +1,3 @@
-from constants import BOARD_SIZE
 from copy import deepcopy
 from game import Game
 from ttt_board import TTTBoard
@@ -14,7 +13,7 @@ class NestedTTT(Game):
     """
 
     def __init__(self, agent_ids):
-        bs = BOARD_SIZE
+        bs = TTTBoard.BOARD_SIZE
 
         self.outer_board = TTTBoard()
         self.inner_boards = [[TTTBoard() for _ in range(bs)] for _ in range(bs)]
@@ -37,17 +36,23 @@ class NestedTTT(Game):
     @Game.progress_game
     def take_action(self, action):
         """
-        Applies the action to the game and updates the outer board if necessary.
-        Also removes now illegal positions from self.legal_positions
+        Checks if an action is legal, apply that action to the board(s).
+        Then remove now illegal positions from the set tracking these.
         """
         outer_pos, inner_action = action
         r, c = outer_pos
         inner_pos, move = inner_action
-        board_won = self.inner_boards[r][c].take_action(inner_action)
-        if board_won:
-            self.outer_board.take_action((outer_pos, move))
 
-        self._remove_illegal_positions(outer_pos, inner_pos, board_won)
+        legal = True
+        if (outer_pos, inner_pos) not in self.legal_positions:
+            legal = False
+        else:
+            board_won = self.inner_boards[r][c].take_action(inner_action)
+            if board_won:
+                self.outer_board.take_action((outer_pos, move))
+
+            self._remove_illegal_positions(outer_pos, inner_pos, board_won)
+        return legal
 
     def undo_action(self, action):
         """
@@ -73,9 +78,9 @@ class NestedTTT(Game):
         self.legal_positions.remove((outer_pos, inner_pos))
         self.undo_positions = {(outer_pos, inner_pos)}
         if board_won:
-            removed_actions = {(outer_pos, (r, c)) for r in range(BOARD_SIZE) for c in range(BOARD_SIZE)}
+            removed_actions = {(outer_pos, (r, c)) for r in range(TTTBoard.BOARD_SIZE) for c in range(TTTBoard.BOARD_SIZE)}
             self.undo_positions = (self.legal_positions.intersection(removed_actions)).union(self.undo_positions)
-            self.legal_positions -= {(outer_pos, (r, c)) for r in range(BOARD_SIZE) for c in range(BOARD_SIZE)}
+            self.legal_positions -= {(outer_pos, (r, c)) for r in range(TTTBoard.BOARD_SIZE) for c in range(TTTBoard.BOARD_SIZE)}
 
     def is_terminal(self):
         winner = self.outer_board.get_winner() is not None
@@ -97,8 +102,8 @@ class NestedTTT(Game):
 
     def __str__(self):
         result = []
-        for i in range(BOARD_SIZE):
-            for j in range(BOARD_SIZE):
+        for i in range(TTTBoard.BOARD_SIZE):
+            for j in range(TTTBoard.BOARD_SIZE):
                 result.append(" | ".join([str(inner_board.board[j]) for inner_board in self.inner_boards[i]]))
             if i < 2:
                 result.append("-"*27)
