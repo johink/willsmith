@@ -6,13 +6,17 @@ from ttt_move import TTTMove
 
 class NestedTTT(Game):
     """
+    Represents a game of tic-tac-toe where each "square" on the outer board 
+    is a standard tic-tac-toe board.
+
+    Relevant datatypes for actions:
     Action :: ((or, oc), ((ir, ic), move))
     NestedTTTAction :: (outer_position, BoardAction)
     outer_position :: (r, c)
     BoardAction :: (position, move)
     """
 
-    def __init__(self, agent_ids):
+    def __init__(self, num_agents):
         bs = TTTBoard.BOARD_SIZE
 
         self.outer_board = TTTBoard()
@@ -21,38 +25,45 @@ class NestedTTT(Game):
         self.legal_positions = {((r, c), (ir, ic)) for r in range(bs) for c in range(bs) for ir in range(bs) for ic in range(bs)}
         self.undo_positions = set()
 
-        super().__init__(agent_ids)
+        super().__init__(num_agents)
 
     def copy(self):
         return deepcopy(self)
 
-    def get_legal_actions(self):
-        move = self._agent_id_to_move(self.current_agent_id)
+    def get_legal_actions(self, agent_id):
+        move = self._agent_id_to_move(agent_id)
         return [(outer_pos, (inner_pos, move)) for outer_pos, inner_pos  in self.legal_positions]
 
-    def get_state(self):
-        return self.board
+    def is_legal_action(self, action):
+        """
+        Checks that the position for the action is still legal and that 
+        the given TTTMove in the action matches the current agent.
+        """
+        outer_pos, inner_action = action
+        inner_pos, move = inner_action
+
+        legal = True
+        if (((outer_pos, inner_pos) in self.legal_positions) or
+            (move = self._agent_id_to_move(self.current_agent_id))):
+            legal = False
+        
+        return legal
 
     @Game.progress_game
     def take_action(self, action):
         """
-        Checks if an action is legal, apply that action to the board(s).
+        Apply action to the board(s).
         Then remove now illegal positions from the set tracking these.
         """
         outer_pos, inner_action = action
         r, c = outer_pos
         inner_pos, move = inner_action
 
-        legal = True
-        if (outer_pos, inner_pos) not in self.legal_positions:
-            legal = False
-        else:
-            board_won = self.inner_boards[r][c].take_action(inner_action)
-            if board_won:
-                self.outer_board.take_action((outer_pos, move))
+        board_won = self.inner_boards[r][c].take_action(inner_action)
+        if board_won:
+            self.outer_board.take_action((outer_pos, move))
 
-            self._remove_illegal_positions(outer_pos, inner_pos, board_won)
-        return legal
+        self._remove_illegal_positions(outer_pos, inner_pos, board_won)
 
     def undo_action(self, action):
         """

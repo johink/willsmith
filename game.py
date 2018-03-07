@@ -18,17 +18,24 @@ class Game:
         """
         raise NotImplementedError()
 
-    def get_legal_actions(self):
+    def get_legal_actions(self, agent_id):
         """
-        Returns a list of the actions in the action space that are still legal.
+        Returns a list of the actions in the action space that are still 
+        legal for the given agent.
         """
-        raise NotImplementedError
+        raise NotImplementedError()
+
+    def is_action_legal(self, action):
+        """
+        Returns a boolean indicating if the action is valid and legal.
+        """
+        raise NotImplementedError()
 
     def take_action(self, action):
         """
         Returns an updated state based on the given action
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def generate_random_action(self):
         random_action = choice(self.get_legal_actions())
@@ -36,15 +43,15 @@ class Game:
 
     def win_check(self, agent_id):
         """
-        Returns True if the given agent has won the game, False otherwise.
+        Returns a boolean indicating if the given agent has won the game.
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def is_terminal(self):
         """
-        Returns True if the game is in a terminal state, False otherwise.
+        Returns a boolean indicating if the game is in a terminal state.
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @classmethod
     def progress_game(cls, func):

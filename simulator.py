@@ -15,12 +15,19 @@ class Simulator:
         self.agents = [agent(i) for i, agent in enumerate(agent_list)]
 
     def advance_by_action(self, action):
-        legal = self.game.take_action(action)
-        if legal:
+        """
+        After checking that the action is valid, apply the action to the 
+        game state and the agents.
+        """
+        if game.is_legal_action(action):
+            game.take_action(action)
             for agent in self.agents:
                 agent.take_action(action)
     
     def run_game(self):
+        """
+        Run a console version of the game.
+        """
         while not self.game.is_terminal():
             current_agent = self.agents[self.game.current_agent_id]
             action = current_agent.search(self.game.copy())
