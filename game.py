@@ -7,9 +7,9 @@ class Game:
     agents to play.
     """
 
-    def __init__(self, agent_ids):
-        self.agent_ids = agent_ids
-        self.agent_turn = 0
+    def __init__(self, num_agents):
+        self.num_agents = num_agents
+        self.current_agent_id = 0
 
     def copy(self):
         """
@@ -49,19 +49,20 @@ class Game:
     @classmethod
     def progress_game(cls, func):
         """
-        Decorator for use by sub-classes, to call _increment_agent_turn 
+        Decorator for use by sub-classes, to call _increment_current_agent_id 
         without an explicit method call.
         """
         def f(self, *args, **kwargs):
             result = func(self, *args, **kwargs)
-            self._increment_agent_turn()
+            self._increment_current_agent_id()
             return result
         return f
 
-    def _increment_agent_turn(self):
+    def _increment_current_agent_id(self):
         """
-        Moves to the next agent's id, wrapping around at the end of the list.
+        Increments the attribute while ensuring it stays within range 
+        [0, self.num_agents).
         """
-        self.agent_turn += 1
-        if self.agent_turn == len(self.agent_ids):
-            self.agent_turn = 0
+        self.current_agent_id += 1
+        if self.current_agent_id == self.num_agents:
+            self.current_agent_id = 0

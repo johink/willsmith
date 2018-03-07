@@ -27,7 +27,7 @@ class NestedTTT(Game):
         return deepcopy(self)
 
     def get_legal_actions(self):
-        move = self._agent_id_to_move(self.agent_turn)
+        move = self._agent_id_to_move(self.current_agent_id)
         return [(outer_pos, (inner_pos, move)) for outer_pos, inner_pos  in self.legal_positions]
 
     def get_state(self):
@@ -59,8 +59,6 @@ class NestedTTT(Game):
         Removes the effect of the action on the board, under the assumption 
         that this is the last action taken.
         """
-        # has a bug where progress game is called and the agent_turn 
-        # is off by the number of undo_action calls
         outer_pos, inner_action = action
         inner_pos, _ = inner_action
         r, c = outer_pos

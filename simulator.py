@@ -3,21 +3,35 @@ from mcts_agent import MCTSAgent
 from random_agent import RandomAgent
 
 
-game = NestedTTT([0,1])
-p1 = MCTSAgent(0)
-p2 = RandomAgent(1)
+class Simulator:
+    """
+    Manages the game and its state, and prompts agents for actions.
+    """
 
-while not game.is_terminal():
-    action = p1.search(game.copy())
-    p1.take_action(action)
-    p2.take_action(action)
-    game.take_action(action)
+    CLEAR_TERMINAL = chr(27) + "[2J"
+
+    def __init__(self, game, agent_list):
+        self.game = game(len(agent_list))
+        self.agents = [agent(i) for i, agent in enumerate(agent_list)]
+
+    def advance_by_action(self, action):
+        legal = self.game.take_action(action)
+        if legal:
+            for agent in self.agents:
+                agent.take_action(action)
     
-    if not game.is_terminal():
-        action = p2.search(game.copy())
-        p1.take_action(action)
-        p2.take_action(action)
-        game.take_action(action)
+    def run_game(self):
+        while not self.game.is_terminal():
+            current_agent = self.agents[self.game.current_agent_id]
+            action = current_agent.search(self.game.copy())
+            self.advance_by_action(action)
+            self.display_game()
+    
+    def display_game(self):
+        print(self.CLEAR_TERMINAL)
+        print(self.game)
 
-    print(chr(27) + "[2J")      # clears the terminal
-    print(game)
+
+if __name__ == "__main__":
+    simulator = Simulator(NestedTTT, [MCTSAgent, RandomAgent])
+    simulator.run_game()
