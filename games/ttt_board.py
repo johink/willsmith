@@ -1,5 +1,6 @@
 from itertools import product
-from ttt_move import TTTMove
+
+from games.ttt_move import TTTMove
 
 
 class TTTBoard:

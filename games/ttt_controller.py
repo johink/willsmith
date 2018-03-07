@@ -1,6 +1,6 @@
-from nested_ttt import NestedTTT
-from ttt_move import TTTMove
-from ttt_view import TTTView
+from games.nested_ttt import NestedTTT
+from games.ttt_move import TTTMove
+from games.ttt_view import TTTView
 
 
 class TTTViewController:

@@ -1,7 +1,8 @@
-from agent import Agent
 from math import log, sqrt
 from random import choice
 from time import time
+
+from agents.agent import Agent
 
 
 class MCTSAgent(Agent):
@@ -55,15 +56,15 @@ class MCTSAgent(Agent):
         Progresses through the tree of Nodes, starting at node, until a leaf 
         is found.
         """
-        unexplored_actions = set(state.get_legal_actions()) - set(node.children.keys())
+        unexplored_actions = set(state.get_legal_actions(self.agent_id)) - set(node.children.keys())
         terminal = state.is_terminal()
         while not unexplored_actions and not terminal:
-            action = node.UCB(state, self.root.trials)  # root.trials == total number of trials
+            action = node.UCB(state, self.root.trials, self.agent_id)  # root.trials == total number of trials
 
             state.take_action(action)
             node = node.get_child(action)
 
-            unexplored_actions = set(state.get_legal_actions()) - set(node.children.keys())
+            unexplored_actions = set(state.get_legal_actions(self.agent_id)) - set(node.children.keys())
             terminal = state.is_terminal()
 
         return state, node, terminal
@@ -72,7 +73,7 @@ class MCTSAgent(Agent):
         """
         Handles creation of a new leaf in the Node tree.
         """
-        action = choice([action for action in state.get_legal_actions() if action not in node.children])
+        action = choice([action for action in state.get_legal_actions(self.agent_id) if action not in node.children])
         new_child = self.Node(node, not node.adversarial)
         node.add_child(action, new_child)
         state.take_action(action)
@@ -138,7 +139,7 @@ class MCTSAgent(Agent):
             value_func = lambda x: self.get_child(x)._value_estimate()
             return max(self.children, key=value_func)
 
-        def UCB(self, state, total_trials):
+        def UCB(self, state, total_trials, agent_id):
             """
             Chooses an action based on an exploitation vs exploration function
             expressed as:
@@ -147,7 +148,7 @@ class MCTSAgent(Agent):
                 exploration parameter *
                     sqrt(ln total trials / num trials at node)
             """
-            valid_actions = state.get_legal_actions()
+            valid_actions = state.get_legal_actions(agent_id)
             results = {}
 
             for action in valid_actions:

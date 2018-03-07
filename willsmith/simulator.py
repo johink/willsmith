@@ -1,6 +1,3 @@
-from nested_ttt import NestedTTT
-from mcts_agent import MCTSAgent
-from random_agent import RandomAgent
 
 
 class Simulator:
@@ -19,8 +16,8 @@ class Simulator:
         After checking that the action is valid, apply the action to the 
         game state and the agents.
         """
-        if game.is_legal_action(action):
-            game.take_action(action)
+        if self.game.is_legal_action(action):
+            self.game.take_action(action)
             for agent in self.agents:
                 agent.take_action(action)
     
@@ -37,8 +34,3 @@ class Simulator:
     def display_game(self):
         print(self.CLEAR_TERMINAL)
         print(self.game)
-
-
-if __name__ == "__main__":
-    simulator = Simulator(NestedTTT, [MCTSAgent, RandomAgent])
-    simulator.run_game()

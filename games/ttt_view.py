@@ -1,6 +1,7 @@
 from tkinter import Button, Frame, Label, Tk
-from ttt_board import TTTBoard
-from ttt_move import TTTMove
+
+from games.ttt_board import TTTBoard
+from games.ttt_move import TTTMove
 
 
 class TTTView:

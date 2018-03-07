@@ -1,7 +1,8 @@
 from copy import deepcopy
-from game import Game
-from ttt_board import TTTBoard
-from ttt_move import TTTMove
+
+from games.game import Game
+from games.ttt_board import TTTBoard
+from games.ttt_move import TTTMove
 
 
 class NestedTTT(Game):
@@ -43,8 +44,8 @@ class NestedTTT(Game):
         inner_pos, move = inner_action
 
         legal = True
-        if (((outer_pos, inner_pos) in self.legal_positions) or
-            (move = self._agent_id_to_move(self.current_agent_id))):
+        if (((outer_pos, inner_pos) not in self.legal_positions) or
+            (move != self._agent_id_to_move(self.current_agent_id))):
             legal = False
         
         return legal
@@ -92,8 +93,9 @@ class NestedTTT(Game):
             self.legal_positions -= {(outer_pos, (r, c)) for r in range(TTTBoard.BOARD_SIZE) for c in range(TTTBoard.BOARD_SIZE)}
 
     def is_terminal(self):
-        winner = self.outer_board.get_winner() is not None
-        return winner or not self.get_legal_actions()
+        is_winner = self.outer_board.get_winner() is not None
+        moves_left = bool(self.legal_positions)
+        return is_winner or not moves_left
 
     def win_check(self, agent_id):
         """

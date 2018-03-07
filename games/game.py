@@ -38,7 +38,7 @@ class Game:
         raise NotImplementedError()
 
     def generate_random_action(self):
-        random_action = choice(self.get_legal_actions())
+        random_action = choice(self.get_legal_actions(self.current_agent_id))
         return random_action
 
     def win_check(self, agent_id):
