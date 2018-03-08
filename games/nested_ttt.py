@@ -7,7 +7,7 @@ from games.ttt_move import TTTMove
 
 class NestedTTT(Game):
     """
-    Represents a game of tic-tac-toe where each "square" on the outer board 
+    Represents a game of tic-tac-toe where each "square" on the outer board
     is a standard tic-tac-toe board.
 
     Relevant datatypes for actions:
@@ -24,7 +24,6 @@ class NestedTTT(Game):
         self.inner_boards = [[TTTBoard() for _ in range(bs)] for _ in range(bs)]
 
         self.legal_positions = {((r, c), (ir, ic)) for r in range(bs) for c in range(bs) for ir in range(bs) for ic in range(bs)}
-        self.undo_positions = set()
 
         super().__init__(num_agents)
 
@@ -35,9 +34,12 @@ class NestedTTT(Game):
         move = self._agent_id_to_move(agent_id)
         return [(outer_pos, (inner_pos, move)) for outer_pos, inner_pos  in self.legal_positions]
 
+    def win_check(self, agent_id):
+        return self.outer_board.winner is not None and self.outer_board.winner == self._agent_id_to_move(agent_id)
+
     def is_legal_action(self, action):
         """
-        Checks that the position for the action is still legal and that 
+        Checks that the position for the action is still legal and that
         the given TTTMove in the action matches the current agent.
         """
         outer_pos, inner_action = action
@@ -47,7 +49,7 @@ class NestedTTT(Game):
         if (((outer_pos, inner_pos) not in self.legal_positions) or
             (move != self._agent_id_to_move(self.current_agent_id))):
             legal = False
-        
+
         return legal
 
     @Game.progress_game
@@ -66,30 +68,13 @@ class NestedTTT(Game):
 
         self._remove_illegal_positions(outer_pos, inner_pos, board_won)
 
-    def undo_action(self, action):
-        """
-        Removes the effect of the action on the board, under the assumption 
-        that this is the last action taken.
-        """
-        outer_pos, inner_action = action
-        inner_pos, _ = inner_action
-        r, c = outer_pos
-        ir, ic = inner_pos
-
-        self.legal_positions.update(self.undo_positions)
-        self.outer_board.board[r][c] = TTTMove.BLANK
-        self.inner_boards[r][c].board[ir][ic] = TTTMove.BLANK
-
     def _remove_illegal_positions(self, outer_pos, inner_pos, board_won):
         """
         Clears positions from self.legal_positions based on action taken and if
         a nested game was completed.
         """
         self.legal_positions.remove((outer_pos, inner_pos))
-        self.undo_positions = {(outer_pos, inner_pos)}
         if board_won:
-            removed_actions = {(outer_pos, (r, c)) for r in range(TTTBoard.BOARD_SIZE) for c in range(TTTBoard.BOARD_SIZE)}
-            self.undo_positions = (self.legal_positions.intersection(removed_actions)).union(self.undo_positions)
             self.legal_positions -= {(outer_pos, (r, c)) for r in range(TTTBoard.BOARD_SIZE) for c in range(TTTBoard.BOARD_SIZE)}
 
     def is_terminal(self):
@@ -97,15 +82,20 @@ class NestedTTT(Game):
         moves_left = bool(self.legal_positions)
         return is_winner or not moves_left
 
-    def win_check(self, agent_id):
-        """
-        Determines if the player with agent_id won the game
-        """
-        win = False
-        if self.is_terminal():
-            agent_move = self._agent_id_to_move(agent_id)
-            win = self.outer_board.check_if_winner((None, agent_move))
-        return win
+    def find_all_winning_actions(self, agent_id):
+        move = self._agent_id_to_move(agent_id)
+        return self.find_all_winning_actions_for_move(move)
+
+    def find_all_losing_actions(self, agent_id):
+        move = self._agent_id_to_move(agent_id ^ 1)
+        return self.find_all_winning_actions_for_move(move)
+
+    def find_all_winning_actions_for_move(self, move):
+        results = []
+        for r in range(TTTBoard.BOARD_SIZE):
+            for c in range(TTTBoard.BOARD_SIZE):
+                results.extend([((r, c), result) for result in self.inner_boards[r][c].find_winning_actions(move)])
+        return results
 
     def _agent_id_to_move(self, agent_id):
         lookup = {0 : TTTMove.X, 1 : TTTMove.O}

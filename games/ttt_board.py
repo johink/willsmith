@@ -8,12 +8,13 @@ class TTTBoard:
     Represents a tic-tac-toe board and the operations that go with it.
     Used for both inner and outer boards of NestedTTT.
     """
-    
+
     BOARD_SIZE = 3
     winning_positions = None
 
     def __init__(self):
         self.board = [[TTTMove.BLANK for _ in range(TTTBoard.BOARD_SIZE)] for _ in range(TTTBoard.BOARD_SIZE)]
+        self.winner = None
 
     def take_action(self, action):
         """
@@ -23,34 +24,40 @@ class TTTBoard:
         pos, move = action
         r, c = pos
         self.board[r][c] = move
-        return self.check_if_winner(action)
+        won = self.check_if_won()
+        if won:
+            self.winner = move
+        return won
 
     def get_winner(self):
         """
         Returns the move that won the board or None if it is still ongoing.
         """
-        winner = None
-        for move in [TTTMove.X, TTTMove.O]:
-            if self.check_if_winner((None, move)):
-                winner = move
-                break
-        return winner
+        return self.winner
 
-    def check_if_winner(self, action):
+    def check_if_won(self):
         """
         Determine if the player with move in the action won the board.
         """
         return tuple(map(tuple, self.board)) in self.winning_positions
 
-    def _check_axis_for_win(self, array, move):
+    def find_winning_actions(self, move):
         """
-        Returns if all elements are the same as move.
+        Finds all spaces that X or O (represented by move) could be placed into
+        which win the board
+        """
+        winning_actions = []
+        if self.winner is None:
+            for r in range(TTTBoard.BOARD_SIZE):
+                for c in range(TTTBoard.BOARD_SIZE):
+                    if self.board[r][c] == TTTMove.BLANK:
+                        self.board[r][c] = move
+                        if self.check_if_won():
+                            winning_actions.append(((r, c), move))
 
-        Uses the fact that sets do not contain duplicate items to
-        quickly determine if there is a complete row.
-        """
-        move_set = set(array).union({move})
-        return len(move_set) == 1
+                        self.board[r][c] = TTTMove.BLANK
+
+        return winning_actions
 
     @staticmethod
     def generate_winning_positions():

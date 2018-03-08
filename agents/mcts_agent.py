@@ -53,7 +53,7 @@ class MCTSAgent(Agent):
 
     def _selection(self, state, node):
         """
-        Progresses through the tree of Nodes, starting at node, until a leaf 
+        Progresses through the tree of Nodes, starting at node, until a leaf
         is found.
         """
         unexplored_actions = set(state.get_legal_actions(self.agent_id)) - set(node.children.keys())
@@ -84,7 +84,8 @@ class MCTSAgent(Agent):
         Plays out the game to its conclusion and returns the result.
         """
         while not state.is_terminal():
-            action = self._random_simulation(state)
+            #action = self._random_simulation(state)
+            action = self._directed_ttt_simulation(state)
             state.take_action(action)
         return state.win_check(self.agent_id)
 
@@ -94,7 +95,31 @@ class MCTSAgent(Agent):
         """
         action = state.generate_random_action()
         return action
-        
+
+    def _directed_ttt_simulation(self, state):
+        """
+        Chooses moves based on the following policy:
+        1) Take any board winning positions
+        2) Take any board losing positions
+        3) Take random action
+        """
+        winning_actions = self._find_winning_actions(state)
+        if winning_actions:
+            action = choice(winning_actions)
+        else:
+            losing_actions = self._find_losing_actions(state)
+            if losing_actions:
+                action = choice(losing_actions)
+            else:
+                action = self._random_simulation(state)
+        return action
+
+    def _find_winning_actions(self, state):
+        return state.find_all_winning_actions(self.agent_id)
+
+    def _find_losing_actions(self, state):
+        return state.find_all_losing_actions(self.agent_id)
+
     def _backpropagation(self, win, node):
         """
         Propogates simluation result up the tree of nodes.
@@ -146,7 +171,7 @@ class MCTSAgent(Agent):
 
             num wins at node / num trials node +
                 exploration parameter *
-                    sqrt(ln total trials / num trials at node)
+                    sqrt(ln(total trials) / num trials at node)
             """
             valid_actions = state.get_legal_actions(agent_id)
             results = {}
@@ -154,7 +179,7 @@ class MCTSAgent(Agent):
             for action in valid_actions:
                 value_estimate = self.get_child(action)._value_estimate()
                 exploration_estimate = self.EXP_PARAM * sqrt(log(total_trials) / self.trials)
-                
+
                 results[action] = value_estimate + exploration_estimate
 
             return max(results.keys(), key=results.get)
