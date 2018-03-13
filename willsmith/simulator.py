@@ -7,9 +7,10 @@ class Simulator:
 
     CLEAR_TERMINAL = chr(27) + "[2J"
 
-    def __init__(self, game, agent_list):
+    def __init__(self, game, agent_list, time_allowed):
         self.game = game(len(agent_list))
         self.agents = [agent(i) for i, agent in enumerate(agent_list)]
+        self.time_allowed = time_allowed
 
     def advance_by_action(self, action):
         """
@@ -27,7 +28,7 @@ class Simulator:
         """
         while not self.game.is_terminal():
             current_agent = self.agents[self.game.current_agent_id]
-            action = current_agent.search(self.game.copy())
+            action = current_agent.search(self.game.copy(), self.time_allowed)
             self.advance_by_action(action)
             self.display_game()
     

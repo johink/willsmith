@@ -4,5 +4,5 @@ from games.nested_ttt import NestedTTT
 from willsmith.simulator import Simulator
 
 if __name__ == "__main__":
-    simulator = Simulator(NestedTTT, [MCTSAgent, RandomAgent])
+    simulator = Simulator(NestedTTT, [MCTSAgent, RandomAgent], 0.5)
     simulator.run_game()

@@ -8,7 +8,7 @@ class Agent:
     def __init__(self, agent_id):
         self.agent_id = agent_id
 
-    def search(self, state):
+    def search(self, state, allotted_time):
         """
         Searches for the next action to take using a strategy provided by 
         the implementation.

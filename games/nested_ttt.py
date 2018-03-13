@@ -18,6 +18,8 @@ class NestedTTT(Game):
     """
 
     def __init__(self, num_agents):
+        super().__init__(num_agents)
+
         bs = TTTBoard.BOARD_SIZE
 
         self.outer_board = TTTBoard()
@@ -25,17 +27,18 @@ class NestedTTT(Game):
 
         self.legal_positions = {((r, c), (ir, ic)) for r in range(bs) for c in range(bs) for ir in range(bs) for ic in range(bs)}
 
-        super().__init__(num_agents)
-
     def copy(self):
         return deepcopy(self)
 
-    def get_legal_actions(self, agent_id):
-        move = self._agent_id_to_move(agent_id)
+    def get_legal_actions(self):
+        move = self._agent_id_to_move(self.current_agent_id)
         return [(outer_pos, (inner_pos, move)) for outer_pos, inner_pos  in self.legal_positions]
 
-    def win_check(self, agent_id):
-        return self.outer_board.winner is not None and self.outer_board.winner == self._agent_id_to_move(agent_id)
+    def get_winning_id(self):
+        winner_id = None
+        if self.outer_board.winner is not None:
+            winner_id = self._move_to_agent_id(self.outer_board.winner)
+        return winner_id
 
     def is_legal_action(self, action):
         """
@@ -82,24 +85,13 @@ class NestedTTT(Game):
         moves_left = bool(self.legal_positions)
         return is_winner or not moves_left
 
-    def find_all_winning_actions(self, agent_id):
-        move = self._agent_id_to_move(agent_id)
-        return self.find_all_winning_actions_for_move(move)
-
-    def find_all_losing_actions(self, agent_id):
-        move = self._agent_id_to_move(agent_id ^ 1)
-        return self.find_all_winning_actions_for_move(move)
-
-    def find_all_winning_actions_for_move(self, move):
-        results = []
-        for r in range(TTTBoard.BOARD_SIZE):
-            for c in range(TTTBoard.BOARD_SIZE):
-                results.extend([((r, c), result) for result in self.inner_boards[r][c].find_winning_actions(move)])
-        return results
-
     def _agent_id_to_move(self, agent_id):
         lookup = {0 : TTTMove.X, 1 : TTTMove.O}
         return lookup[agent_id]
+
+    def _move_to_agent_id(self, move):
+        lookup = {TTTMove.X : 0, TTTMove.O: 1}
+        return lookup[move]
 
     def __str__(self):
         result = []

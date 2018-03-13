@@ -3,7 +3,7 @@ from random import choice
 
 class Game:
     """
-    Base class to enforce the game interface required by the simulator and 
+    Base class to enforce the game interface required by the simulator and
     agents to play.
     """
 
@@ -13,14 +13,14 @@ class Game:
 
     def copy(self):
         """
-        Returns a copy of the state, so that agents can manipulate it as 
+        Returns a copy of the state, so that agents can manipulate it as
         they decide on actions.
         """
         raise NotImplementedError()
 
     def get_legal_actions(self, agent_id):
         """
-        Returns a list of the actions in the action space that are still 
+        Returns a list of the actions in the action space that are still
         legal for the given agent.
         """
         raise NotImplementedError()
@@ -38,12 +38,12 @@ class Game:
         raise NotImplementedError()
 
     def generate_random_action(self):
-        random_action = choice(self.get_legal_actions(self.current_agent_id))
+        random_action = choice(self.get_legal_actions())
         return random_action
 
-    def win_check(self, agent_id):
+    def get_winning_id(self):
         """
-        Returns a boolean indicating if the given agent has won the game.
+        Returns agent_id of player that won the game, or None otherwise.
         """
         raise NotImplementedError()
 
@@ -56,7 +56,7 @@ class Game:
     @classmethod
     def progress_game(cls, func):
         """
-        Decorator for use by sub-classes, to call _increment_current_agent_id 
+        Decorator for use by sub-classes, to call _increment_current_agent_id
         without an explicit method call.
         """
         def f(self, *args, **kwargs):
@@ -67,7 +67,7 @@ class Game:
 
     def _increment_current_agent_id(self):
         """
-        Increments the attribute while ensuring it stays within range 
+        Increments the attribute while ensuring it stays within range
         [0, self.num_agents).
         """
         self.current_agent_id += 1
