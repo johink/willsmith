@@ -18,14 +18,14 @@ class Game:
         """
         raise NotImplementedError()
 
-    def get_legal_actions(self, agent_id):
+    def get_legal_actions(self):
         """
         Returns a list of the actions in the action space that are still
         legal for the given agent.
         """
         raise NotImplementedError()
 
-    def is_action_legal(self, action):
+    def is_legal_action(self, action):
         """
         Returns a boolean indicating if the action is valid and legal.
         """
