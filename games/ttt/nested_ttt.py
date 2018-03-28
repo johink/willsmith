@@ -1,8 +1,8 @@
 from copy import deepcopy
 
 from games.game import Game
-from games.ttt_board import TTTBoard
-from games.ttt_move import TTTMove
+from games.ttt.ttt_board import TTTBoard
+from games.ttt.ttt_move import TTTMove
 
 
 class NestedTTT(Game):
@@ -57,10 +57,6 @@ class NestedTTT(Game):
 
     @Game.progress_game
     def take_action(self, action):
-        """
-        Apply action to the board(s).
-        Then remove now illegal positions from the set tracking these.
-        """
         outer_pos, inner_action = action
         r, c = outer_pos
         inner_pos, move = inner_action
