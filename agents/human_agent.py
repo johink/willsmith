@@ -1,4 +1,4 @@
-from agents.agent import Agent
+from willsmith.agent import Agent
 
 
 class HumanAgent(Agent):

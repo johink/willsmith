@@ -1,8 +1,9 @@
 from copy import deepcopy
 
-from games.game import Game
 from games.ttt.ttt_board import TTTBoard
 from games.ttt.ttt_move import TTTMove
+
+from willsmith.game import Game
 
 
 class NestedTTT(Game):

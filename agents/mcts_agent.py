@@ -2,7 +2,7 @@ from math import log, sqrt
 from random import choice
 from time import time
 
-from agents.agent import Agent
+from willsmith.agent import Agent
 
 
 class MCTSAgent(Agent):

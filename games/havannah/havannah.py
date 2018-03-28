@@ -1,6 +1,7 @@
-from games.game import Game
 from games.havannah.color import Color
 from games.havannah.havannah_board import HavannahBoard
+
+from willsmith.game import Game
 
 
 class Havannah(Game):
