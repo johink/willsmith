@@ -3,7 +3,10 @@ from argparse import ArgumentParser
 from agents.human_agent import HumanAgent
 from agents.mcts_agent import MCTSAgent
 from agents.random_agent import RandomAgent
+
 from games.ttt.nested_ttt import NestedTTT
+from games.ttt.ttt_action import TTTAction
+
 from willsmith.simulator import Simulator
 
 
@@ -38,6 +41,7 @@ if __name__ == "__main__":
 
     if args.game_choice == "NestedTTT" or args.game_choice == "ttt":
         game = NestedTTT
+        action_prompt = TTTAction.prompt_for_action
     else:
         raise RuntimeError("Unexpected game type.")
 
@@ -50,4 +54,5 @@ if __name__ == "__main__":
     time = args.time_allotted
 
     simulator = Simulator(game, [agent1, agent2], time)
+    simulator.add_action_prompt_to_human_agent(action_prompt)
     simulator.run_game()

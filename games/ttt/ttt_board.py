@@ -16,13 +16,12 @@ class TTTBoard:
         self.board = [[TTTMove.BLANK for _ in range(TTTBoard.BOARD_SIZE)] for _ in range(TTTBoard.BOARD_SIZE)]
         self.winner = None
 
-    def take_action(self, action):
+    def take_action(self, position, move):
         """
         Applies the action to the board.
         Returns whether the board is won or not after this action.
         """
-        pos, move = action
-        r, c = pos
+        r, c = position
         self.board[r][c] = move
         won = self.check_if_won()
         if won:
@@ -37,27 +36,10 @@ class TTTBoard:
 
     def check_if_won(self):
         """
-        Determine if the player with move in the action won the board.
+        Look in the winning positions to see if the current board state is 
+        a win.
         """
         return tuple(map(tuple, self.board)) in self.winning_positions
-
-    def find_winning_actions(self, move):
-        """
-        Finds all spaces that X or O (represented by move) could be placed into
-        which win the board
-        """
-        winning_actions = []
-        if self.winner is None:
-            for r in range(TTTBoard.BOARD_SIZE):
-                for c in range(TTTBoard.BOARD_SIZE):
-                    if self.board[r][c] == TTTMove.BLANK:
-                        self.board[r][c] = move
-                        if self.check_if_won():
-                            winning_actions.append(((r, c), move))
-
-                        self.board[r][c] = TTTMove.BLANK
-
-        return winning_actions
 
     @staticmethod
     def generate_winning_positions():

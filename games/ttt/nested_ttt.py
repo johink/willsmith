@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from games.ttt.ttt_action import TTTAction
 from games.ttt.ttt_board import TTTBoard
 from games.ttt.ttt_move import TTTMove
 
@@ -8,14 +9,13 @@ from willsmith.game import Game
 
 class NestedTTT(Game):
     """
-    Represents a game of tic-tac-toe where each "square" on the outer board
-    is a standard tic-tac-toe board.
-
-    Relevant datatypes for actions:
-    Action :: ((or, oc), ((ir, ic), move))
-    NestedTTTAction :: (outer_position, BoardAction)
-    outer_position :: (r, c)
-    BoardAction :: (position, move)
+    Represents a game of tic-tac-toe where each square on the outer board
+    is an inner tic-tac-toe board.  Move can be placed on any of the 
+    unfinished boards.  
+    
+    Winning an inner board counts as a "move" on the 
+    outer board, so winning the game requires winning three inner boards in a 
+    row.
     """
 
     def __init__(self, num_agents):
@@ -33,7 +33,8 @@ class NestedTTT(Game):
 
     def get_legal_actions(self):
         move = self._agent_id_to_move(self.current_agent_id)
-        return [(outer_pos, (inner_pos, move)) for outer_pos, inner_pos  in self.legal_positions]
+        return [TTTAction(outer_pos, inner_pos, move) 
+                    for outer_pos, inner_pos  in self.legal_positions]
 
     def get_winning_id(self):
         winner_id = None
@@ -46,27 +47,22 @@ class NestedTTT(Game):
         Checks that the position for the action is still legal and that
         the given TTTMove in the action matches the current agent.
         """
-        outer_pos, inner_action = action
-        inner_pos, move = inner_action
-
         legal = True
-        if (((outer_pos, inner_pos) not in self.legal_positions) or
-            (move != self._agent_id_to_move(self.current_agent_id))):
+        if (((action.outer_pos, action.inner_pos) not in self.legal_positions) or
+            (action.move != self._agent_id_to_move(self.current_agent_id))):
             legal = False
 
         return legal
 
     @Game.progress_game
     def take_action(self, action):
-        outer_pos, inner_action = action
-        r, c = outer_pos
-        inner_pos, move = inner_action
+        r, c = action.outer_pos
 
-        board_won = self.inner_boards[r][c].take_action(inner_action)
+        board_won = self.inner_boards[r][c].take_action(action.inner_pos, action.move)
         if board_won:
-            self.outer_board.take_action((outer_pos, move))
+            self.outer_board.take_action(action.outer_pos, action.move)
 
-        self._remove_illegal_positions(outer_pos, inner_pos, board_won)
+        self._remove_illegal_positions(action.outer_pos, action.inner_pos, board_won)
 
     def _remove_illegal_positions(self, outer_pos, inner_pos, board_won):
         """

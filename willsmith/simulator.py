@@ -1,3 +1,4 @@
+from agents.human_agent import HumanAgent
 
 
 class Simulator:
@@ -35,3 +36,11 @@ class Simulator:
     def display_game(self):
         print(self.CLEAR_TERMINAL)
         print(self.game)
+
+    def add_action_prompt_to_human_agent(self, action_prompt):
+        """
+        Used to add correct game prompt for HumanAgent to input actions.
+        """
+        for agent in self.agents:
+            if isinstance(agent, HumanAgent):
+                agent.action_prompt = action_prompt
