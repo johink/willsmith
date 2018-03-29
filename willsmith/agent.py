@@ -1,22 +1,31 @@
+from abc import ABC, abstractmethod
 
 
-class Agent:
+class Agent(ABC):
     """
-    Base class to enforce the agent interface required by the simulator.
+    Abstract base class for game playing agents.
+    
+    Subclasses are agents that are capable of searching for and returning 
+    actions within an allotted time and updating their internal state based 
+    on a given action taken in the game.
     """
 
     def __init__(self, agent_id):
         self.agent_id = agent_id
 
+    @abstractmethod
     def search(self, state, allotted_time):
         """
-        Searches for the next action to take using a strategy provided by 
-        the implementation.
-        """
-        raise NotImplementedError()
+        Search the action space for the next action to take.  
 
+        Search strategy depends on the subclass implementation.
+        """
+        pass
+
+    @abstractmethod
     def take_action(self, action):
         """
-        Progresses its internal state, if necessary, by the given action.
+        Update the agent's internal state by the latest action taken in the 
+        game.
         """
-        raise NotImplementedError()
+        pass

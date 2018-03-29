@@ -3,30 +3,41 @@ from games.havannah.color import Color
 
 class HavannahBoard:
     """
-    Encodes the gameboard using a dense graph representation stored as a 
-    lookup table from cubic hex coordinates to hex colors.  
-
-    Edges are implicit from each hex to all of its neighbors, calculated as 
-    needed.
+    The board for a game of Havannah, made up of hexes with sides typically 
+    of length 10.
 
     The game is won by forming one of three configurations:
     (descriptions from Wikipedia - https://en.wikipedia.org/wiki/Havannah)
-        Ring - a loop around one or more cells (no matter whether the encircled cells are occupied by any player or empty
-        Bridge - which connects any two of the six corner cells of the board
-        Fork -  which connects any three edges of the board; corner points are not considered parts of an edge
+        Ring - loop around one or more cells, where the encircled cells are 
+                occupied by the other player or empty
+        Bridge - connect any two of the six corner cells of the board
+        Fork -  connect any three edges of the board; corner points are not 
+                    considered parts of an edge
+
+    Encodes the gameboard using a dense graph representation stored as a 
+    lookup table from cubic hex coordinates to hex colors.  Also keeps track 
+    of the color of the winner if the game is over.
+
+    Edges between graph nodes are implicit from each hex to all of its 
+    neighbors, calculated as needed.
     """
 
-    def __init__(self, board_size):
-        self.board_size = board_size
-        self.grid = self._generate_hexes(self.board_size)
+    BEGINNER_BOARD_SIZE = 8
+    BOARD_SIZE = 10
+
+    def __init__(self):
+        self.grid = self._generate_hexes(self.BOARD_SIZE)
+        self.winner = None
 
     def take_action(self, action):
         self.grid[action.coord] = action.color
 
-    def check_winner(self, action):
-        pass
+    def get_winner(self, action):
+        return self.winner
 
     def _generate_hexes(self, board_size):
+        """
+        """
         hexes = [(x, y, z) for x in range(-board_size + 1, board_size)
                            for y in range(-board_size + 1, board_size)
                            for z in range(-board_size + 1, board_size)
@@ -34,6 +45,9 @@ class HavannahBoard:
         return {key: Color.BLANK for key in hexes}
 
     def _check_bridge(self, pos, color):
+        """
+        Checks the bridge win condition, described in the class docstring.
+        """
         fringe = [pos]
         win = False
         visited = set()
@@ -52,6 +66,9 @@ class HavannahBoard:
         return win
 
     def _check_fork(self, pos, color):
+        """
+        Checks the fork win condition, described in the class docstring.
+        """
         fringe = [pos]
         win = False
         visited = set()
@@ -74,21 +91,29 @@ class HavannahBoard:
         return win
 
     def _check_ring(self, pos, color):
+        """
+        Checks the ring win condition, described in the class docstring.
+        """
         pass
 
     def _check_if_corner(self, pos):
         """
+        Check if the coordinate is in a corner position on the board.
+
         Corner hex coordinates are always some combination of 
         {board_size - 1, -board_size + 1, 0}
         """
-        return max(pos) == self.board_size - 1 and abs(min(pos)) == board_size - 1
+        return max(pos) == self.BOARD_SIZE - 1 and abs(min(pos)) == self.BOARD_SIZE - 1
 
     def _check_if_edge(self, pos):
         """
+        Check if the coordinate is on the edge of the board, excluding 
+        corners.
+
         Edges, excluding corners, always have one and only one coordinate 
         that satisfies the condition - abs(coord) == board_size - 1
         """
-        return (abs(max(pos)) == self.board_size - 1) ^ (abs(min(pos)) == self.board_size - 1)
+        return (abs(max(pos)) == self.BOARD_SIZE - 1) ^ (abs(min(pos)) == self.BOARD_SIZE - 1)
 
     def _get_neighbors(self, pos):
         """
@@ -98,7 +123,7 @@ class HavannahBoard:
         neighbors = []
         for delta in [(-1, 1, 0), (1, -1, 0), (-1, 0, 1), (1, 0, -1), (0, 1, -1), (0, -1, 1)]:
             new_tuple = tuple([x + y for x,y in zip(pos, delta)])
-            if max(new_tuple) < self.board_size and min(new_tuple) > -self.board_size:
+            if max(new_tuple) < self.BOARD_SIZE and min(new_tuple) > -self.BOARD_SIZE:
                 neighbors.append(new_tuple)
         return neighbors
 

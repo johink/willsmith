@@ -2,6 +2,12 @@ from willsmith.action import Action
 
 
 class HavannahAction(Action):
+    """
+    Contains the data for a Havannah game action:
+
+    coordinate - cubic hex coordinate in the form (x,y,z)
+    color - Blue or Red, corresponding to the player's label
+    """
     
     def __init__(self, coordinate, color):
         super().__init__()
@@ -11,6 +17,13 @@ class HavannahAction(Action):
 
     @staticmethod
     def prompt_for_action(legal_actions):
+        """
+        Create a HavannahAction based on user input.
+
+        Prompts for the hex coordinate, expected to be in the form "x,y,z" 
+        with no extra characters, and all three values are expected in the 
+        range [0,board size).
+        """
         color = legal_actions[0].color
 
         prompt = "Choose position for next {} move(x,y,z):  ".format(color)

@@ -13,19 +13,23 @@ class Havannah(Game):
     Players alternate turns placing stones, or coloring hexes in our 
     case, in previously unchosen hexes.  Play continues until one player has 
     formed one of three different winning configurations:  a ring, fork, or 
-    bridge.  These are described and checked in the HavannahBoard class.
+    bridge.  
+    
+    These are described and checked in the HavannahBoard class that stores 
+    the game state.
 
     Coordinates system for hexes comes from the flat-topped version described 
     here:  
     https://www.redblobgames.com/grids/hexagons/#coordinates-cube
+
+    See Game documenation for the public API expected by other classes.
     """
 
-    BEGINNER_BOARD_SIZE = 8
-    BOARD_SIZE = 10
+    ACTION = HavannahAction
 
-    def __init__(self, num_agents, board_size = BEGINNER_BOARD_SIZE):
+    def __init__(self, num_agents):
         super().__init__(num_agents)
-        self.board = HavannahBoard(board_size)
+        self.board = HavannahBoard()
         self.legal_positions = set(self.board.grid.keys())
 
     def get_legal_actions(self):
@@ -34,24 +38,31 @@ class Havannah(Game):
 
     def is_legal_action(self, action):
         """
-        Checks that the action is using the proper color (ie matching the color
-        of the current agent's turn) and that the position has not already
-        been taken by another player.
+        Check that the action's position is legal and that the action's color 
+        matches the expected color for the current turn.
         """
-        return (action.color == self._agent_id_to_color(self.current_agent_id)) 
-                    and (action.coord in self.legal_positions)
+        legal_position = action.coord in self.legal_positions
+        legal_color = action.color == self._agent_id_to_color(self.current_agent_id) 
+        return legal_position and legal_color
 
     @Game.progress_game
     def take_action(self, action):
+        """
+        Take the given action on the game board, and remove the position from 
+        the set of legal positions.
+
+        See the Game class for documentation on the progress_game decorator.
+        """
         self.board.take_action(action)
         self.legal_positions -= action.coord
 
     def get_winning_id(self):
         """
-        Returns agent_id of player that won the game, or None if a game is 
-        in-progress or a draw.
+        Return the id of the agent who won the game.  
+        None is the default value,  indicating either a draw or that the game 
+        is still ongoing.
         """
-        winner = self.board.check_winner()
+        winner = self.board.get_winner()
         if winner is not None:
             winner = self._color_to_agent_id(winner)
         return winner

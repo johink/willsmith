@@ -3,11 +3,15 @@ from willsmith.action import Action
 
 class TTTAction(Action):
     """
-    Contains the information for a NestedTTT game action.
+    Contains the data for a NestedTTT game action:
 
     Outer position - selects a board
     Inner position - selects a position on that board
     Move - X or O, corresponding to player's label
+
+    The prompt_for_action method is overridden from the Action parent 
+    class.  This functionality is used by the HumanAgent to provide 
+    game-specific prompts on its turn.
     """
 
     def __init__(self, outer_pos, inner_pos, move):
@@ -19,6 +23,13 @@ class TTTAction(Action):
 
     @staticmethod
     def prompt_for_action(legal_actions):
+        """
+        Create a TTTAction based on user input.
+
+        Prompts for a choice of inner board, then a position on that board.  
+        Both positions are expected to be in the format "r,c" with no extra 
+        characters, and both r,c are in the range [0,9).
+        """
         move = legal_actions[0].move
 
         outer_input = "Choose board for {} move(row,col):  ".format(move)
@@ -30,12 +41,6 @@ class TTTAction(Action):
         return TTTAction(outer_pos, inner_pos, move)
 
     def __eq__(self, other):
-        """
-        Needed for comparing actions that are equal but not the same instance 
-        in memory.
-        Specifically, for testing if the return value from prompt_for_action 
-        is in the list of legal actions.
-        """
         equal = False
         if isinstance(self, other.__class__):
             equal = (self.outer_pos == other.outer_pos and 
@@ -44,7 +49,4 @@ class TTTAction(Action):
         return equal
 
     def __hash__(self):
-        """
-        Defining a custom equality check requires this definition as well.
-        """
         return hash((self.outer_pos, self.inner_pos, self.move))

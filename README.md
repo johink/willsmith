@@ -9,13 +9,24 @@ Work is being done along with [John Bourassa](https://github.com/johink).
 
 ## Included
 
-The repository currently has an implementation of Nested Tic-Tac-Toe.  This 
-plays similarly to the standard game, except instead of 9 spaces there are 
-9 inner Tic-Tac-Toe boards to play.  Players can choose any legal move on any 
-inner board, and the winner of an inner board claims that space on the outer 
-board.  
+Games included, with descriptions coming from the docs:
+- Nested Tic-Tac-Toe
+> Tic-Tac-Toe, but each square on the outer board is another Tic-Tac-Toe board.
+> 
+> The game is played as standard Tic-Tac-Toe, except there are 9 inner 
+> boards to make moves on.  Winning an inner board claims that space for 
+> the winner on the outer board.  Draws result in a square that does not 
+> count for either side.  Winning the game requires winning 3 inner boards 
+> in a row, forming a win on the outer board.
 
-> Havannah implementation coming soon.
+- Havannah (coming soon)
+> The game of Havannah is played on a hex board that is typically 10 hexes to 
+> a side.  
+> 
+> Players alternate turns placing stones, or coloring hexes in our 
+> case, in previously unchosen hexes.  Play continues until one player has 
+> formed one of three different winning configurations:  a ring, fork, or 
+> bridge.
 
 Included agent types:  
 - MCTSAgent:  runs the aforementioned algorithm for action selection  
@@ -24,4 +35,7 @@ Included agent types:
 
 ## To Run
 
-Run `python main.py -h` to see the currently available options.  
+Run `python main.py -h` to see the available options for games and agents.  
+An example game of Nested Tic-Tac-Toe can be shown by running 
+`python main.py ttt`, which will start the game with an MCTS agent against a 
+random selection agent and a default time-allowed of 1 second.

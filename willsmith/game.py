@@ -1,63 +1,97 @@
+from abc import ABC, abstractmethod
+from copy import deepcopy
 from random import choice
 
 
-class Game:
+class Game(ABC):
     """
-    Base class to enforce the game interface required by the simulator and
-    agents to play.
+    Abstract base class for games.
+
+    Subclasses are turn-based games where players take single alternating 
+    actions until a winner is decided.  
+    
+    The interface enforced by this class is used by Agent instances to 
+    determine their next action and Simulator to control the game as they run 
+    agents through a match.
     """
+
+    ACTION = None
 
     def __init__(self, num_agents):
         self.num_agents = num_agents
         self.current_agent_id = 0
 
-    def copy(self):
-        """
-        Returns a copy of the state, so that agents can manipulate it as
-        they decide on actions.
-        """
-        raise NotImplementedError()
-
+    @abstractmethod
     def get_legal_actions(self):
         """
-        Returns a list of the actions in the action space that are still
-        legal for the given agent.
+        Return a list of the available actions for the current agent in the 
+        current state of the game.
         """
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def is_legal_action(self, action):
         """
-        Returns a boolean indicating if the action is valid and legal.
+        Return a boolean indicating if the action is valid and legal.
         """
-        raise NotImplementedError()
+        pass
 
+    @abstractmethod
     def take_action(self, action):
         """
-        Returns an updated state based on the given action
+        Progress the internal game state by the given action.
+
+        Overriden version of this method should be decorated with 
+        progress_game to ensure the current_agent_id attribute remains valid.
         """
-        raise NotImplementedError()
+        pass
+
+    @abstractmethod
+    def get_winning_id(self):
+        """
+        Return the agent id of the player that won the game.
+
+        None typically indicates a draw or an ongoing game.
+        """
+        pass
+
+    @abstractmethod
+    def is_terminal(self):
+        """
+        Return a boolean indicating if the game is in a terminal state.
+        """
+        pass
 
     def generate_random_action(self):
+        """
+        Make a random choice of the available legal actions.  
+
+        Used by random agents or for game playouts by other agents.
+        """
         random_action = choice(self.get_legal_actions())
         return random_action
 
-    def get_winning_id(self):
+    def copy(self):
         """
-        Returns agent_id of player that won the game, or None otherwise.
-        """
-        raise NotImplementedError()
+        Return a copy of the state.
 
-    def is_terminal(self):
+        Used by the simulator to allow agents to run simulations without 
+        corrupting the actual state of the game.
         """
-        Returns a boolean indicating if the game is in a terminal state.
-        """
-        raise NotImplementedError()
+        return deepcopy(self)
 
     @classmethod
     def progress_game(cls, func):
         """
-        Decorator for use by sub-classes, to call _increment_current_agent_id
-        without an explicit method call.
+        Call the provided function, then increment the game turn to the next 
+        agent's id.  
+
+        Indicates a method, such as take_action, that progresses the game to 
+        the next turn.
+
+        A decorator is used for two reasons:  to not pollute the body of 
+        other methods and to make it more obvious which method calls progress 
+        the game.
         """
         def f(self, *args, **kwargs):
             result = func(self, *args, **kwargs)
@@ -67,8 +101,9 @@ class Game:
 
     def _increment_current_agent_id(self):
         """
-        Increments the attribute while ensuring it stays within range
-        [0, self.num_agents).
+        Increment the agent id of the current player, indicating a new turn.
+
+        This method forces the id to stay in legal range [0, num_agents)
         """
         self.current_agent_id += 1
         if self.current_agent_id == self.num_agents:

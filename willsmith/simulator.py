@@ -1,46 +1,90 @@
+from abc import ABC, abstractmethod
 from agents.human_agent import HumanAgent
 
 
-class Simulator:
+class Simulator(ABC):
     """
-    Manages the game and its state, and prompts agents for actions.
-    """
+    Abstract base class for a game simulator.
 
-    CLEAR_TERMINAL = chr(27) + "[2J"
+    Subclasses only need to implement the display_game method to be a 
+    complete simulator, the rest of the functionality is already present.
+    """
 
     def __init__(self, game, agent_list, time_allowed):
-        self.game = game(len(agent_list))
-        self.agents = [agent(i) for i, agent in enumerate(agent_list)]
+        """
+        Store the game and agent classes.
+        """
+        self.game = game
+        self.agents = agent_list
         self.time_allowed = time_allowed
 
-    def advance_by_action(self, action):
-        """
-        After checking that the action is valid, apply the action to the 
-        game state and the agents.
-        """
-        if self.game.is_legal_action(action):
-            self.game.take_action(action)
-            for agent in self.agents:
-                agent.take_action(action)
-    
-    def run_game(self):
-        """
-        Run a console version of the game.
-        """
-        while not self.game.is_terminal():
-            current_agent = self.agents[self.game.current_agent_id]
-            action = current_agent.search(self.game.copy(), self.time_allowed)
-            self.advance_by_action(action)
-            self.display_game()
-    
-    def display_game(self):
-        print(self.CLEAR_TERMINAL)
-        print(self.game)
+        self.current_game = None
+        self.current_agents = None
 
-    def add_action_prompt_to_human_agent(self, action_prompt):
+    def initialize_match(self):
         """
-        Used to add correct game prompt for HumanAgent to input actions.
+        Create instances of the game and the agents, in preparation for a 
+        new simulation.
         """
-        for agent in self.agents:
+        self.current_game = self.game(len(self.agents))
+        self.current_agents = [agent(i) for i, agent in enumerate(self.agents)]
+
+        self._add_prompt_to_human_agents(self.current_game.ACTION.prompt_for_action)
+        
+    def run_games(self, num_games):
+        """
+        Run num_games number of game simulations.
+        """
+        self.initialize_match()
+        for _ in range(num_games):
+            self._run_game()
+
+    def _run_game(self):
+        """
+        Run a playthrough of the game.
+
+        Progresses through the list of agents repeatedly, prompting them for 
+        an action selection and then taking that action, until a terminal 
+        state of the game is reached.
+        """
+        while not self.current_game.is_terminal():
+            current_agent = self.current_agents[self.current_game.current_agent_id]
+            action = current_agent.search(self.current_game.copy(), self.time_allowed)
+            self._advance_by_action(action)
+            self.display_game()
+        print("Winning agent id:  {}".format(self.current_game.get_winning_id()))
+
+    def _advance_by_action(self, action):
+        """
+        Advance the game state and each of the agent's internal states by the 
+        given action.
+
+        The action is checked if it is legal before taking it, but the 
+        current agent's turn is over regardless.
+        """
+        if self.current_game.is_legal_action(action):
+            self.current_game.take_action(action)
+            for agent in self.current_agents:
+                agent.take_action(action)
+        else:   
+            # awkwardly catches the case where an agent manages to make an 
+            # illegal action choice and the game needs to be progressed
+            self.current_game.progress_game(lambda: None)()
+    
+    @abstractmethod
+    def display_game(self):
+        """
+        Update the display of the game with the current game state.
+        """
+        pass
+
+    def _add_prompt_to_human_agents(self, action_prompt):
+        """
+        Add the action prompt to all HumanAgent instances.
+
+        Used to update those agents with the proper game-specific prompt so 
+        users can choose actions.
+        """
+        for agent in self.current_agents:
             if isinstance(agent, HumanAgent):
                 agent.action_prompt = action_prompt
