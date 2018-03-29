@@ -3,7 +3,10 @@ from willsmith.agent import Agent
 
 class HumanAgent(Agent):
     """
-    Agent that prompts for actions from a human player.
+    Agent that relies on user input to make action choices.
+
+    It relies on its action_prompt attribute, set externally by the 
+    simulator, to provide the proper prompts and to construct the action.
     """
 
     def __init__(self, agent_id):
@@ -12,6 +15,10 @@ class HumanAgent(Agent):
         self.action_prompt = None
 
     def search(self, state, max_time):
+        """
+        Prompt the player for an action until a legal action is chosen, then 
+        return it.
+        """
         legal_actions = state.get_legal_actions()
         player_action = None
         while player_action not in legal_actions:
