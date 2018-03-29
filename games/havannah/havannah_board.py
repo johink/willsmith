@@ -21,8 +21,7 @@ class HavannahBoard:
         self.grid = self._generate_hexes(self.board_size)
 
     def take_action(self, action):
-        pos, color = action
-        self.grid[pos] = color
+        self.grid[action.coord] = action.color
 
     def check_winner(self, action):
         pass

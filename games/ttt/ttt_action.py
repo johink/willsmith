@@ -21,8 +21,8 @@ class TTTAction(Action):
     def prompt_for_action(legal_actions):
         move = legal_actions[0].move
 
-        outer_input = "Please choose board for {} move(row,col):  ".format(move)
-        inner_input = "Please choose board position for move(row,col):  "
+        outer_input = "Choose board for {} move(row,col):  ".format(move)
+        inner_input = "Choose board position for move(row,col):  "
 
         outer_pos = tuple(map(int, input(outer_input).split(',')))
         inner_pos = tuple(map(int, input(inner_input).split(',')))

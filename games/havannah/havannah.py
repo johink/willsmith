@@ -1,3 +1,4 @@
+from games.havannah.havannah_action import HavannahAction
 from games.havannah.color import Color
 from games.havannah.havannah_board import HavannahBoard
 
@@ -14,9 +15,6 @@ class Havannah(Game):
     formed one of three different winning configurations:  a ring, fork, or 
     bridge.  These are described and checked in the HavannahBoard class.
 
-    Action :: (position, color)
-    Position :: (x,y,z) or (x,y) depending on cube vs axial coordinates
-
     Coordinates system for hexes comes from the flat-topped version described 
     here:  
     https://www.redblobgames.com/grids/hexagons/#coordinates-cube
@@ -32,7 +30,7 @@ class Havannah(Game):
 
     def get_legal_actions(self):
         color = self._agent_id_to_color(self.current_agent_id)
-        return [(pos, color) for pos in self.legal_positions]
+        return [HavannahAction(coord, color) for coord in self.legal_positions]
 
     def is_legal_action(self, action):
         """
@@ -40,14 +38,13 @@ class Havannah(Game):
         of the current agent's turn) and that the position has not already
         been taken by another player.
         """
-        pos, color = action
-        return (color == self._agent_id_to_color(self.current_agent_id)) and (pos in self.legal_positions)
+        return (action.color == self._agent_id_to_color(self.current_agent_id)) 
+                    and (action.coord in self.legal_positions)
 
     @Game.progress_game
     def take_action(self, action):
-        pos, color = action
         self.board.take_action(action)
-        self.legal_positions -= pos
+        self.legal_positions -= action.coord
 
     def get_winning_id(self):
         """
