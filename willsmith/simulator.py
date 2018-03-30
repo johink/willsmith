@@ -8,7 +8,9 @@ class Simulator():
 
     def __init__(self, game, agent_list, time_allowed, display_controller):
         """
-        Store the game and agent classes.
+        Store the game and agent classes for later instantiation when a 
+        simulation is started.  Also stores the display controller for 
+        use during simulation.
         """
         self.game = game
         self.agents = agent_list
@@ -54,20 +56,13 @@ class Simulator():
 
     def _advance_by_action(self, action):
         """
-        Advance the game state and each of the agent's internal states by the 
-        given action.
-
-        The action is checked if it is legal before taking it, but the 
-        current agent's turn is over regardless.
+        Pass the action to the game to progress the game state.  
+        Only if it is legal, the game state and agents are updated with the 
+        taken action.
         """
-        if self.current_game.is_legal_action(action):
-            self.current_game.take_action(action)
+        if self.current_game.take_action_if_legal(action):
             for agent in self.current_agents:
                 agent.take_action(action)
-        else:   
-            # awkwardly catches the case where an agent manages to make an 
-            # illegal action choice and the game needs to be progressed
-            self.current_game.progress_game(lambda: None)()
     
     def _add_prompt_to_human_agents(self, action_prompt):
         """

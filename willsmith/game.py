@@ -62,6 +62,18 @@ class Game(ABC):
         """
         pass
 
+    def take_action_if_legal(self, action):
+        """
+        Take the action if it is legal, otherwise skip that agent's turn.
+
+        Returns a boolean to indicate if the action was taken.
+        """
+        take_action = self.is_legal_action(action)
+        if take_action:
+            self.take_action(action)
+        self._increment_current_agent_id()
+        return take_action
+
     def generate_random_action(self):
         """
         Make a random choice of the available legal actions.  
@@ -79,25 +91,6 @@ class Game(ABC):
         corrupting the actual state of the game.
         """
         return deepcopy(self)
-
-    @classmethod
-    def progress_game(cls, func):
-        """
-        Call the provided function, then increment the game turn to the next 
-        agent's id.  
-
-        Indicates a method, such as take_action, that progresses the game to 
-        the next turn.
-
-        A decorator is used for two reasons:  to not pollute the body of 
-        other methods and to make it more obvious which method calls progress 
-        the game.
-        """
-        def f(self, *args, **kwargs):
-            result = func(self, *args, **kwargs)
-            self._increment_current_agent_id()
-            return result
-        return f
 
     def _increment_current_agent_id(self):
         """

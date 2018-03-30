@@ -72,7 +72,6 @@ class NestedTTT(Game):
         legal_move = action.move == self._agent_id_to_move(self.current_agent_id)
         return legal_position and legal_move
 
-    @Game.progress_game
     def take_action(self, action):
         """
         Take the given action on the indicated inner board.  
@@ -80,8 +79,6 @@ class NestedTTT(Game):
         If this triggers a win, update the outer board with the players 
         move.  Either way, remove the positions that are no longer legal from 
         the set of legal positions.
-
-        See the Game class for documentation on the progress_game decorator.
         """
         r, c = action.outer_pos
 
