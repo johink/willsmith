@@ -15,6 +15,7 @@ from agents.mcts_agent import MCTSAgent
 from agents.random_agent import RandomAgent
 
 from games.ttt.nested_ttt import NestedTTT
+from games.ttt.ttt_display import TTTDisplay
 
 from willsmith.simple_displays import ConsoleDisplay
 from willsmith.simple_displays import NoDisplay
@@ -33,6 +34,9 @@ def create_parser():
     parser.add_argument("-b", "--agent2", type = str, default = "rand",
                         choices = ["mcts", "rand", "human"],
                         help = "Agent type for player 2")
+    parser.add_argument("-c", "--console-render", action = "store_true",
+                        default = False,
+                        help = "Render the game on the command-line")
     parser.add_argument("-r", "--no_render", action = "store_true", 
                         default = False,
                         help = "Do not display the game on each turn.")
@@ -64,6 +68,7 @@ if __name__ == "__main__":
 
     if args.game_choice == "NestedTTT" or args.game_choice == "ttt":
         game = NestedTTT
+        display = TTTDisplay()
     else:
         raise RuntimeError("Unexpected game type.")
 
@@ -72,10 +77,11 @@ if __name__ == "__main__":
 
     if agent1 is None or agent2 is None:
         raise RuntimeError("Unexpected agent type.")
-
-    display = ConsoleDisplay()
+        
     if args.no_render:
         display = NoDisplay()
+    elif args.console_render:
+        display = ConsoleDisplay()
 
     time = args.time_allotted
 

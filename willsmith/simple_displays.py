@@ -1,3 +1,8 @@
+"""
+A pair of generic display controllers that can used for almost any game.
+"""
+
+
 from willsmith.display_controller import DisplayController
 
 
@@ -10,10 +15,13 @@ class ConsoleDisplay(DisplayController):
 
     CLEAR_TERMINAL = chr(27) + "[2J"
 
+    def start(self):
+        pass
+
     def reset_display(self):
         print(self.CLEAR_TERMINAL)
 
-    def update_display(self, game):
+    def update_display(self, game, action):
         print(self.CLEAR_TERMINAL)
         print(game)
 
@@ -25,8 +33,11 @@ class NoDisplay(DisplayController):
     Useful for when attempting to run simulations as fast as possible.
     """
 
+    def start(self):
+        pass
+
     def reset_display(self):
         pass
 
-    def update_display(self, game):
+    def update_display(self, game, action):
         pass

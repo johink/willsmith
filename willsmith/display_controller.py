@@ -12,6 +12,16 @@ class DisplayController(ABC):
         pass
 
     @abstractmethod
+    def start(self):
+        """
+        Initialize the display elements.
+
+        For instance, initializing the root window and widgets for a Tkinter
+        GUI.
+        """
+        pass
+
+    @abstractmethod
     def reset_display(self):
         """
         Return the display to an initial state.
@@ -19,8 +29,9 @@ class DisplayController(ABC):
         pass
 
     @abstractmethod
-    def update_display(self, game):
+    def update_display(self, game, action):
         """
-        Update the display based on the given game state.
+        Update the display based on the given game state and the last action
+        taken.
         """
         pass

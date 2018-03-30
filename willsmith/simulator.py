@@ -35,9 +35,12 @@ class Simulator():
         """
         Run num_games number of game simulations.
         """
-        self.initialize_match()
-        for _ in range(num_games):
+        self.display_controller.start()
+        for i in range(num_games):
+            print("Game {}/{}".format(i + 1, num_games))
+            self.initialize_match()
             self._run_game()
+        input("Games complete, press enter key to end.")
 
     def _run_game(self):
         """
@@ -50,15 +53,18 @@ class Simulator():
         while not self.current_game.is_terminal():
             current_agent = self.current_agents[self.current_game.current_agent_id]
             action = current_agent.search(self.current_game.copy(), self.time_allowed)
+
             self._advance_by_action(action)
-            self.display_controller.update_display(self.current_game)
+            self.display_controller.update_display(self.current_game, action)
+
         print("Winning agent id:  {}".format(self.current_game.get_winning_id()))
 
     def _advance_by_action(self, action):
         """
         Pass the action to the game to progress the game state.  
+
         Only if it is legal, the game state and agents are updated with the 
-        taken action.
+        action.
         """
         if self.current_game.take_action_if_legal(action):
             for agent in self.current_agents:
