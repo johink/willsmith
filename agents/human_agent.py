@@ -14,7 +14,7 @@ class HumanAgent(Agent):
         
         self.action_prompt = None
 
-    def search(self, state, max_time):
+    def search(self, state, allotted_time):
         """
         Prompt the player for an action until a legal action is chosen, then 
         return it.

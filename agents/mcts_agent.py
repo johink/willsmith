@@ -12,10 +12,11 @@ class MCTSAgent(Agent):
     Computes as many runs as possible in the time alloted, where a run 
     consists of the following stages:
 
-        Selection       -   Start at root, use UCB to choose actions until action does not produce child
-        Expansion       -   Create new node
-        Simulation      -   Play out game until reaching a terminal state
-        Backpropagation -   Update win/trial counters for new node and all parents
+        Selection       -   Start at root, use UCB to choose actions until 
+                                action does not produce child  
+        Expansion       -   Create new node  
+        Simulation      -   Play out game until reaching a terminal state  
+        Backpropagation -   Update win/trial counters for new node and all parents  
 
     Then, it chooses the action with the most trials and returns that.
 
