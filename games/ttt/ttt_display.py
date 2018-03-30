@@ -89,8 +89,8 @@ class TTTDisplay(DisplayController):
                                 for _ in range(self.BOARD_DIM)] 
                                     for _ in range(self.BOARD_DIM)]
         self.inner_boards = [[self._generate_inner_board(r, c) 
-                                for r in range(self.BOARD_DIM)]
-                                    for c in range(self.BOARD_DIM)]
+                                for c in range(self.BOARD_DIM)]
+                                    for r in range(self.BOARD_DIM)]
 
     def _generate_inner_board(self, row, col):
         """
