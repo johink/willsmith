@@ -72,7 +72,7 @@ class NestedTTT(Game):
         legal_move = action.move == self._agent_id_to_move(self.current_agent_id)
         return legal_position and legal_move
 
-    def take_action(self, action):
+    def _take_action(self, action):
         """
         Take the given action on the indicated inner board.  
 

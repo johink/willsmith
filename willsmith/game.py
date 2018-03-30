@@ -37,7 +37,7 @@ class Game(ABC):
         pass
 
     @abstractmethod
-    def take_action(self, action):
+    def _take_action(self, action):
         """
         Progress the internal game state by the given action.
 
@@ -68,11 +68,11 @@ class Game(ABC):
 
         Returns a boolean to indicate if the action was taken.
         """
-        take_action = self.is_legal_action(action)
-        if take_action:
-            self.take_action(action)
+        legal = self.is_legal_action(action)
+        if legal:
+            self._take_action(action)
         self._increment_current_agent_id()
-        return take_action
+        return legal
 
     def generate_random_action(self):
         """

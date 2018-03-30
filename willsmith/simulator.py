@@ -40,7 +40,7 @@ class Simulator():
             print("Game {}/{}".format(i + 1, num_games))
             self.initialize_match()
             self._run_game()
-        input("Games complete, press enter key to end.")
+        input("\nGames complete, press enter key to end.")
 
     def _run_game(self):
         """

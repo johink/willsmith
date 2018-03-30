@@ -45,7 +45,7 @@ class Havannah(Game):
         legal_color = action.color == self._agent_id_to_color(self.current_agent_id) 
         return legal_position and legal_color
 
-    def take_action(self, action):
+    def _take_action(self, action):
         """
         Take the given action on the game board, and remove the position from 
         the set of legal positions.

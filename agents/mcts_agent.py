@@ -86,7 +86,7 @@ class MCTSAgent(Agent):
         while not unexplored_actions and not terminal:
             action = node.UCB(state, self.root.trials)  # root.trials == total number of trials
 
-            state.take_action(action)
+            state.take_action_if_legal(action)
             node = node.get_child(action)
 
             unexplored_actions = set(state.get_legal_actions()) - set(node.children.keys())
@@ -105,7 +105,7 @@ class MCTSAgent(Agent):
         new_child = self.Node(node, state.current_agent_id)
         node.add_child(action, new_child)
 
-        state.take_action(action)
+        state.take_action_if_legal(action)
 
         return state, new_child
 
@@ -115,7 +115,7 @@ class MCTSAgent(Agent):
         """
         while not state.is_terminal():
             action = self._random_simulation(state)
-            state.take_action(action)
+            state.take_action_if_legal(action)
         return state.get_winning_id()
 
     def _random_simulation(self, state):
