@@ -16,8 +16,9 @@ from agents.random_agent import RandomAgent
 
 from games.ttt.nested_ttt import NestedTTT
 
-from willsmith.simple_simulators import ConsoleSimulator
-from willsmith.simple_simulators import NoDisplaySimulator
+from willsmith.simple_displays import ConsoleDisplay
+from willsmith.simple_displays import NoDisplay
+from willsmith.simulator import Simulator
 
 
 def create_parser():
@@ -72,13 +73,13 @@ if __name__ == "__main__":
     if agent1 is None or agent2 is None:
         raise RuntimeError("Unexpected agent type.")
 
-    sim_choice = ConsoleSimulator
+    display = ConsoleDisplay()
     if args.no_render:
-        sim_choice = NoDisplaySimulator
+        display = NoDisplay()
 
     time = args.time_allotted
 
     num_games = args.num_games
 
-    simulator = sim_choice(game, [agent1, agent2], time)
+    simulator = Simulator(game, [agent1, agent2], time, display)
     simulator.run_games(num_games)

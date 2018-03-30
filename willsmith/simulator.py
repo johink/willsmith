@@ -1,22 +1,19 @@
-from abc import ABC, abstractmethod
 from agents.human_agent import HumanAgent
 
 
-class Simulator(ABC):
+class Simulator():
     """
-    Abstract base class for a game simulator.
-
-    Subclasses only need to implement the display_game method to be a 
-    complete simulator, the rest of the functionality is already present.
+    Game simulator that manages running a game and agent players.
     """
 
-    def __init__(self, game, agent_list, time_allowed):
+    def __init__(self, game, agent_list, time_allowed, display_controller):
         """
         Store the game and agent classes.
         """
         self.game = game
         self.agents = agent_list
         self.time_allowed = time_allowed
+        self.display_controller = display_controller
 
         self.current_game = None
         self.current_agents = None
@@ -30,6 +27,7 @@ class Simulator(ABC):
         self.current_agents = [agent(i) for i, agent in enumerate(self.agents)]
 
         self._add_prompt_to_human_agents(self.current_game.ACTION.prompt_for_action)
+        self.display_controller.reset_display()
         
     def run_games(self, num_games):
         """
@@ -51,7 +49,7 @@ class Simulator(ABC):
             current_agent = self.current_agents[self.current_game.current_agent_id]
             action = current_agent.search(self.current_game.copy(), self.time_allowed)
             self._advance_by_action(action)
-            self.display_game()
+            self.display_controller.update_display(self.current_game)
         print("Winning agent id:  {}".format(self.current_game.get_winning_id()))
 
     def _advance_by_action(self, action):
@@ -71,13 +69,6 @@ class Simulator(ABC):
             # illegal action choice and the game needs to be progressed
             self.current_game.progress_game(lambda: None)()
     
-    @abstractmethod
-    def display_game(self):
-        """
-        Update the display of the game with the current game state.
-        """
-        pass
-
     def _add_prompt_to_human_agents(self, action_prompt):
         """
         Add the action prompt to all HumanAgent instances.
