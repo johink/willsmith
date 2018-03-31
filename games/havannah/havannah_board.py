@@ -1,5 +1,5 @@
 from games.havannah.color import Color
-
+import games.havannah.hex_math as hm
 
 class HavannahBoard:
     """
@@ -23,7 +23,7 @@ class HavannahBoard:
     """
 
     BEGINNER_BOARD_SIZE = 8
-    BOARD_SIZE = 10
+    BOARD_SIZE = 3
 
     def __init__(self):
         self.grid = self._generate_hexes(self.BOARD_SIZE)
@@ -143,3 +143,100 @@ class HavannahBoard:
         if abs(min(pos)) > max(pos):
             label = "-" + label
         return label
+
+    def coord_to_color(self, col, slant):
+        """
+        axial coord -> hex coord
+        hex coord -> color
+        color -> string
+        """
+        return str(col) + str(slant)
+
+    def __str__(self):
+        """
+        top rows function
+        " " * ((3n - 2) - 3i) + "__" + "/<>\__" * i | i [0,n-1]
+        
+        middle rows function
+        repeat n times:
+        "/<>\" + "__/<>\" * (n-1)
+        "\__/" + "<>\__/" * (n-1)
+        
+        bottom rows function
+        " " * 3i + "\__/" + "<>\__/" * (n-1-i) | i <- [1, n-1]
+        
+        7 space,        __
+        4 space,     __/0@\__   
+        1 space,  __/!!\__/1@\__
+        0 space, /@0\__/0!\__/2@\
+        0 space, \__/!0\__/1!\__/
+        0 space, /@1\__/00\__/2!\
+        0 space, \__/!1\__/10\__/
+        0 space, /@2\__/01\__/20\
+        0 space, \__/!2\__/11\__/
+        3 space,    \__/02\__/
+        6 space,       \__/
+
+        negative numbers are shift char for number
+        """
+        n = self.BOARD_SIZE
+        f = self.coord_to_color
+        result = []
+        col = 0
+        slant = -(n-1)
+        print("{},{}".format(col,slant))
+        for i in range(n):
+            sub_result = []
+            sub_result.append(" " * ((3 * n - 2) - 3 * i) + "__")
+            for j in range(i):
+                print("{},{}".format(col,slant))
+                sub_result.append("/{}\\__".format(f(col, slant)))
+                col, slant = hm.axial_east(col, slant)
+
+            col, slant = hm.axial_n_moves(hm.axial_west, i, col, slant)
+            # top coord was always off because of the top row where 
+            # there are no hex values but only the __ of the topmost hex
+            if i != 0:
+                col, slant = hm.axial_s_west(col, slant)
+            result.append("".join(sub_result))
+
+        col = -(n-1)
+        slant = 0
+        for i in range(n):
+            sub_result = []
+            sub_result.append("/{}\\".format(f(col, slant)))
+            col, slant = hm.axial_east(col, slant)
+            for j in range(n-1):
+                sub_result.append("__/{}\\".format(f(col, slant)))
+                col, slant = hm.axial_east(col, slant)
+
+            result.append("".join(sub_result))
+
+            col, slant = hm.axial_n_moves(hm.axial_west, n-1, col, slant)
+            col, slant = hm.axial_s_east(col, slant)
+            sub_result = []
+            sub_result.append("\\__/")
+            for j in range(n-1):
+                sub_result.append("{}\\__/".format(f(col, slant)))
+                col, slant = hm.axial_east(col, slant)
+
+            col, slant = hm.axial_n_moves(hm.axial_west, n-1, col, slant)
+            col, slant = hm.axial_s_west(col, slant)
+            result.append("".join(sub_result))
+
+        col = -(n-1) + 1
+        slant = (n-1)
+        for i in range(1, n):
+            sub_result = []
+            sub_result.append(" " * 3 * i + "\\__/")
+            for j in range(n-1-i):
+                sub_result.append("{}\\__/".format(f(col,slant)))
+                col, slant = hm.axial_east(col, slant)
+
+            col, slant = hm.axial_n_moves(hm.axial_west, n-1-i, col, slant)
+            col, slant = hm.axial_s_east(col, slant)
+            result.append("".join(sub_result))
+
+        return "\n".join(result)
+
+

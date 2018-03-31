@@ -76,3 +76,6 @@ class Havannah(Game):
     def _color_to_agent_id(self, color):
         lookup = {Color.BLUE : 0, Color.RED : 1}
         return lookup[color]
+
+    def __str__(self):
+        return str(self.board)

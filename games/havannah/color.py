@@ -9,3 +9,19 @@ class Color(Enum):
     BLANK = 1
     BLUE = 2
     RED = 3
+    
+    def __str__(self):
+        """
+        Returns strings of length two for console printing format of the 
+        Havannah board.
+        """
+        if self.name == "BLANK":
+            val = "  "
+        elif self.name == "BLUE":
+            val = "bb"
+        elif self.name == "RED":
+            val = "rr"
+        else:
+            raise RuntimeError("Unexpected Color: {}".format(self.name))
+
+        return val

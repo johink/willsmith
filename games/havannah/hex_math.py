@@ -47,7 +47,9 @@ def axial_n_moves(f, n, col, slant):
     """
     Return coordinate moved n hexes by the action defined in f.
     """
-    return cubic_to_axial(*cubic_n_moves(f, n, *axial_to_cubic(col, slant)))
+    for _ in range(n):
+        col, slant = f(col, slant)
+    return col, slant
 
 def _cubic_move_gen(delta):
     def f(x, y, z):
