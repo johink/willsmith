@@ -23,7 +23,7 @@ class HavannahBoard:
     """
 
     BEGINNER_BOARD_SIZE = 8
-    BOARD_SIZE = 3
+    BOARD_SIZE = 10
 
     def __init__(self):
         self.grid = self._generate_hexes(self.BOARD_SIZE)
@@ -31,24 +31,37 @@ class HavannahBoard:
 
     def take_action(self, action):
         self.grid[action.coord] = action.color
+        if self._check_if_won(action):
+            self.winner = action.color
 
-    def get_winner(self, action):
+    def get_winner(self):
         return self.winner
 
     def _generate_hexes(self, board_size):
         """
+        Generate a list of cubic coordinates for every possible position 
+        on the board.
+
+        Then return a dictionary from each coordinate to hex colors.
         """
         hexes = [(x, y, z) for x in range(-board_size + 1, board_size)
                            for y in range(-board_size + 1, board_size)
                            for z in range(-board_size + 1, board_size)
                                  if x + y + z == 0]
         return {key: Color.BLANK for key in hexes}
+    
+    def _check_if_won(self, action):
+        coord, color = action.coord, action.color
+        return (self._check_bridge(coord, color)
+                or self._check_fork(coord, color)
+                or self._check_ring(coord, color))
+        
 
-    def _check_bridge(self, pos, color):
+    def _check_bridge(self, coord, color):
         """
         Checks the bridge win condition, described in the class docstring.
         """
-        fringe = [pos]
+        fringe = [coord]
         win = False
         visited = set()
         corner_count = 0
@@ -65,11 +78,11 @@ class HavannahBoard:
 
         return win
 
-    def _check_fork(self, pos, color):
+    def _check_fork(self, coord, color):
         """
         Checks the fork win condition, described in the class docstring.
         """
-        fringe = [pos]
+        fringe = [coord]
         win = False
         visited = set()
         edge_set = set()
@@ -90,22 +103,22 @@ class HavannahBoard:
 
         return win
 
-    def _check_ring(self, pos, color):
+    def _check_ring(self, coord, color):
         """
         Checks the ring win condition, described in the class docstring.
         """
         pass
 
-    def _check_if_corner(self, pos):
+    def _check_if_corner(self, coord):
         """
         Check if the coordinate is in a corner position on the board.
 
         Corner hex coordinates are always some combination of 
         {board_size - 1, -board_size + 1, 0}
         """
-        return max(pos) == self.BOARD_SIZE - 1 and abs(min(pos)) == self.BOARD_SIZE - 1
+        return max(coord) == self.BOARD_SIZE - 1 and abs(min(coord)) == self.BOARD_SIZE - 1
 
-    def _check_if_edge(self, pos):
+    def _check_if_edge(self, coord):
         """
         Check if the coordinate is on the edge of the board, excluding 
         corners.
@@ -113,21 +126,21 @@ class HavannahBoard:
         Edges, excluding corners, always have one and only one coordinate 
         that satisfies the condition - abs(coord) == board_size - 1
         """
-        return (abs(max(pos)) == self.BOARD_SIZE - 1) ^ (abs(min(pos)) == self.BOARD_SIZE - 1)
+        return (abs(max(coord)) == self.BOARD_SIZE - 1) ^ (abs(min(coord)) == self.BOARD_SIZE - 1)
 
-    def _get_neighbors(self, pos):
+    def _get_neighbors(self, coord):
         """
         Calculate the neighbors of a hex, ensuring that coordinates are 
         within the board bounds.
         """
         neighbors = []
         for delta in [(-1, 1, 0), (1, -1, 0), (-1, 0, 1), (1, 0, -1), (0, 1, -1), (0, -1, 1)]:
-            new_tuple = tuple([x + y for x,y in zip(pos, delta)])
+            new_tuple = tuple([x + y for x,y in zip(coord, delta)])
             if max(new_tuple) < self.BOARD_SIZE and min(new_tuple) > -self.BOARD_SIZE:
                 neighbors.append(new_tuple)
         return neighbors
 
-    def _get_edge_label(self, pos):
+    def _get_edge_label(self, coord):
         """
         Convert a hex coordinate into a label {-x, x, -y, y, -z, z} 
         corresponding to the negative-most and positive-most rows of the 
@@ -136,60 +149,53 @@ class HavannahBoard:
         For use on edge coordinates to determine the specific edge they 
         lie upon.  Non-edge coordinates are not anticipated.
         """
-        index, _ = max(enumerate(pos), key = lambda x: x[1])
+        index, _ = max(enumerate(coord), key = lambda x: x[1])
         mapping = {0: "x", 1: "y", 2: "z"}
         label = mapping[index]
 
-        if abs(min(pos)) > max(pos):
+        if abs(min(coord)) > max(coord):
             label = "-" + label
         return label
 
     def coord_to_color(self, col, slant):
         """
-        axial coord -> hex coord
-        hex coord -> color
-        color -> string
+        Convert the axial coordinate to a color string.
+
+        Used in the string representation of the board, which assigns an 
+        axial coordinate to each hex as it builds the board string.
         """
-        return str(col) + str(slant)
+        return str(self.grid[hm.axial_to_cubic(col, slant)])
 
     def __str__(self):
         """
-        top rows function
-        " " * ((3n - 2) - 3i) + "__" + "/<>\__" * i | i [0,n-1]
-        
-        middle rows function
-        repeat n times:
-        "/<>\" + "__/<>\" * (n-1)
-        "\__/" + "<>\__/" * (n-1)
-        
-        bottom rows function
-        " " * 3i + "\__/" + "<>\__/" * (n-1-i) | i <- [1, n-1]
-        
-        7 space,        __
-        4 space,     __/0@\__   
-        1 space,  __/!!\__/1@\__
-        0 space, /@0\__/0!\__/2@\
-        0 space, \__/!0\__/1!\__/
-        0 space, /@1\__/00\__/2!\
-        0 space, \__/!1\__/10\__/
-        0 space, /@2\__/01\__/20\
-        0 space, \__/!2\__/11\__/
-        3 space,    \__/02\__/
-        6 space,       \__/
+        Return a string representation of the game board that looks like:
 
-        negative numbers are shift char for number
+                  __
+               __/  \__
+            __/  \__/  \__
+         __/  \__/  \__/  \__
+        /  \__/  \__/  \__/  \
+        \__/  \__/  \__/  \__/
+        /  \__/  \__/  \__/  \
+        \__/  \__/bb\__/  \__/
+        /  \__/  \__/  \__/  \
+        \__/rr\__/  \__/  \__/
+        /  \__/  \__/  \__/  \
+        \__/  \__/  \__/  \__/
+           \__/  \__/  \__/
+              \__/  \__/
+                 \__/
         """
         n = self.BOARD_SIZE
         f = self.coord_to_color
-        result = []
         col = 0
         slant = -(n-1)
-        print("{},{}".format(col,slant))
+
+        result = []
         for i in range(n):
             sub_result = []
             sub_result.append(" " * ((3 * n - 2) - 3 * i) + "__")
             for j in range(i):
-                print("{},{}".format(col,slant))
                 sub_result.append("/{}\\__".format(f(col, slant)))
                 col, slant = hm.axial_east(col, slant)
 
@@ -198,45 +204,46 @@ class HavannahBoard:
             # there are no hex values but only the __ of the topmost hex
             if i != 0:
                 col, slant = hm.axial_s_west(col, slant)
+
             result.append("".join(sub_result))
 
-        col = -(n-1)
-        slant = 0
         for i in range(n):
             sub_result = []
             sub_result.append("/{}\\".format(f(col, slant)))
             col, slant = hm.axial_east(col, slant)
-            for j in range(n-1):
+            for j in range(n - 1):
                 sub_result.append("__/{}\\".format(f(col, slant)))
                 col, slant = hm.axial_east(col, slant)
 
             result.append("".join(sub_result))
 
-            col, slant = hm.axial_n_moves(hm.axial_west, n-1, col, slant)
+            # n, not n-1 steps back because of the format call on ln 205
+            col, slant = hm.axial_n_moves(hm.axial_west, n, col, slant)
             col, slant = hm.axial_s_east(col, slant)
+
             sub_result = []
             sub_result.append("\\__/")
-            for j in range(n-1):
+            for j in range(n - 1):
                 sub_result.append("{}\\__/".format(f(col, slant)))
                 col, slant = hm.axial_east(col, slant)
 
-            col, slant = hm.axial_n_moves(hm.axial_west, n-1, col, slant)
+            col, slant = hm.axial_n_moves(hm.axial_west, n - 1, col, slant)
             col, slant = hm.axial_s_west(col, slant)
             result.append("".join(sub_result))
 
-        col = -(n-1) + 1
-        slant = (n-1)
+        # not sure why the previous computation leaves the coordinate an 
+        # extra hex west, but this is the correction needed
+        col, slant = hm.axial_east(col, slant)
         for i in range(1, n):
             sub_result = []
             sub_result.append(" " * 3 * i + "\\__/")
-            for j in range(n-1-i):
+            for j in range(n - 1 - i):
                 sub_result.append("{}\\__/".format(f(col,slant)))
                 col, slant = hm.axial_east(col, slant)
 
-            col, slant = hm.axial_n_moves(hm.axial_west, n-1-i, col, slant)
+            col, slant = hm.axial_n_moves(hm.axial_west, n - 1 - i, col, slant)
             col, slant = hm.axial_s_east(col, slant)
+
             result.append("".join(sub_result))
 
         return "\n".join(result)
-
-

@@ -53,7 +53,7 @@ class Havannah(Game):
         See the Game class for documentation on the progress_game decorator.
         """
         self.board.take_action(action)
-        self.legal_positions -= action.coord
+        self.legal_positions.remove(action.coord)
 
     def get_winning_id(self):
         """
@@ -67,7 +67,7 @@ class Havannah(Game):
         return winner
 
     def is_terminal(self):
-        return len(self.legal_positions == 0) or self.board.check_winner() is not None
+        return len(self.legal_positions) == 0 or self.board.get_winner() is not None
 
     def _agent_id_to_color(self, agent_id):
         lookup = {0 : Color.BLUE, 1 : Color.RED}
