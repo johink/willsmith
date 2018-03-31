@@ -16,7 +16,7 @@ Work is being done along with [John Bourassa](https://github.com/johink).
 > count for either side.  Winning the game requires winning 3 inner boards 
 > in a row, forming a win on the outer board.
 
-- Havannah (coming soon)
+- Havannah
 > The game of Havannah is played on a hex board that is typically 10 hexes to 
 > a side.  
 > 

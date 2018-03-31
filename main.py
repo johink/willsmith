@@ -14,6 +14,8 @@ from agents.human_agent import HumanAgent
 from agents.mcts_agent import MCTSAgent
 from agents.random_agent import RandomAgent
 
+from games.havannah.havannah import Havannah
+
 from games.ttt.nested_ttt import NestedTTT
 from games.ttt.ttt_display import TTTDisplay
 
@@ -22,17 +24,21 @@ from willsmith.simple_displays import NoDisplay
 from willsmith.simulator import Simulator
 
 
+HAVANNAH_LABELS = ["Havannah", "hav"]
+NESTEDTTT_LABELS = ["NestedTTT", "ttt"]
+AGENT_LABELS = ["mcts", "rand", "human"]
+
 def create_parser():
     parser = ArgumentParser(description = "Run agents through simulations")
 
     parser.add_argument("game_choice", type = str, 
-                        choices = ["NestedTTT", "ttt"],
+                        choices = NESTEDTTT_LABELS + HAVANNAH_LABELS,
                         help = "The game for the agents to play")
     parser.add_argument("-a", "--agent1", type = str, default = "mcts",
-                        choices = ["mcts", "rand", "human"],
+                        choices = AGENT_LABELS,
                         help = "Agent type for player 1")
     parser.add_argument("-b", "--agent2", type = str, default = "rand",
-                        choices = ["mcts", "rand", "human"],
+                        choices = AGENT_LABELS,
                         help = "Agent type for player 2")
     parser.add_argument("-c", "--console-render", action = "store_true",
                         default = False,
@@ -66,9 +72,12 @@ if __name__ == "__main__":
     parser = create_parser()
     args = parser.parse_args()
 
-    if args.game_choice == "NestedTTT" or args.game_choice == "ttt":
+    if args.game_choice in NESTEDTTT_LABELS:
         game = NestedTTT
-        display = TTTDisplay()
+        display = TTTDisplay
+    elif args.game_choice in HAVANNAH_LABELS:
+        game = Havannah
+        display = ConsoleDisplay
     else:
         raise RuntimeError("Unexpected game type.")
 
@@ -79,13 +88,13 @@ if __name__ == "__main__":
         raise RuntimeError("Unexpected agent type.")
         
     if args.no_render:
-        display = NoDisplay()
+        display = NoDisplay
     elif args.console_render:
-        display = ConsoleDisplay()
+        display = ConsoleDisplay
 
     time = args.time_allotted
 
     num_games = args.num_games
 
-    simulator = Simulator(game, [agent1, agent2], time, display)
+    simulator = Simulator(game, [agent1, agent2], time, display())
     simulator.run_games(num_games)
