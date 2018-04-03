@@ -1,4 +1,4 @@
-from copy import copy
+from copy import deepcopy
 
 from games.havannah.color import Color
 from games.havannah.hex import Hex
@@ -264,18 +264,15 @@ class HavannahBoard:
     def __deepcopy__(self, memo):
         new = HavannahBoard.__new__(HavannahBoard)
         memo[id(self)] = new
-        new.grid = copy(self.grid)
+        new.grid = self._grid_deepcopy(self.grid, memo)
         new.winner = self.winner
         return new
 
-    def _grid_deepcopy(self, memo):
+    def _grid_deepcopy(self, grid, memo):
         """
         Deepcopy the grid dictionary.
 
         Manually iterates through to save the overhead calling deepcopy on 
         the dictionary while still calling the custom deepcopy for Hex.
         """
-        new = dict()
-        for k, v in self.grid.items:
-            new[k] = deepcopy(v, memo)
-        return new
+        return {k:deepcopy(v, memo) for k, v in grid.items()}

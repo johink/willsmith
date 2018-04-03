@@ -1,8 +1,9 @@
+from copy import deepcopy
 from unittest import TestCase
 
+from games.havannah.color import Color
 from games.havannah.havannah_action import HavannahAction
 from games.havannah.havannah_board import HavannahBoard
-from games.havannah.color import Color
 
 
 class TestHavannahBoard(TestCase):
@@ -64,3 +65,9 @@ class TestHavannahBoard(TestCase):
     def test_get_edge_label_edge_check_7(self):
         edge_label = self.board._get_edge_label((-2, -1, 3))
         self.assertEqual(edge_label, "z")
+
+    def test_deepcopy_action_does_not_affect_grid(self):
+        action = HavannahAction((0, 0, 0), Color.BLUE)
+        other_board = deepcopy(self.board)
+        other_board.take_action(action)
+        self.assertNotEqual(self.board.grid, other_board.grid)
