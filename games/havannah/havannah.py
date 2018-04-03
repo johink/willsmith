@@ -80,3 +80,31 @@ class Havannah(Game):
 
     def __str__(self):
         return str(self.board)
+
+    def serialize(self):
+        return {
+        "board": self.board.grid.items(),
+        "winner": self.board.winner,
+        "legal": list(self.legal_positions),
+        "agents": self.num_agents,
+        "cur_agent": self.current_agent_id
+        }
+
+    @staticmethod
+    def deserialize(data):
+        h = Havannah.__new__(Havannah)
+        h.num_agents = (data['agents'])
+        h.current_agent_id = data['cur_agent']
+        h.board = HavannahBoard.__new__(HavannahBoard)
+        h.board.grid = dict(data['board'])
+        h.board.winner = data['winner']
+        h.legal_positions = set(data['legal'])
+        return h
+
+    def copy(self):
+        return Havannah.deserialize(self.serialize())
+
+    def __eq__(self, other):
+        return (self.board == other.board and 
+                self.legal_positions == other.legal_positions and
+                super.__eq__(self, other))

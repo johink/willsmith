@@ -101,3 +101,6 @@ class Game(ABC):
         self.current_agent_id += 1
         if self.current_agent_id == self.num_agents:
             self.current_agent_id = 0
+
+    def __eq__(self, other):
+        return self.num_agents == other.num_agents and self.current_agent_id == other.current_agent_id
