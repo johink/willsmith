@@ -1,3 +1,5 @@
+from copy import copy
+
 from games.havannah.color import Color
 import games.havannah.hex_math as hm
 
@@ -269,3 +271,10 @@ class HavannahBoard:
 
     def __eq__(self, other):
         return self.winner == other.winner and self.grid == other.grid
+
+    def __deepcopy__(self, memo):
+        b = HavannahBoard.__new__(HavannahBoard)
+        memo[id(self)] = b
+        b.grid = copy(self.grid)
+        b.winner = self.winner
+        return b

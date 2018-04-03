@@ -1,3 +1,5 @@
+from copy import copy, deepcopy
+
 from games.havannah.havannah_action import HavannahAction
 from games.havannah.color import Color
 from games.havannah.havannah_board import HavannahBoard
@@ -81,6 +83,17 @@ class Havannah(Game):
     def __str__(self):
         return str(self.board)
 
+    def __deepcopy__(self, memo):
+        h = Havannah.__new__(Havannah)
+
+        # should rely on inheritance for these attributes
+        h.num_agents = self.num_agents
+        h.current_agent_id = self.current_agent_id
+
+        h.board = deepcopy(self.board)
+        h.legal_positions = copy(self.legal_positions)
+        return h
+
     def serialize(self):
         return {
         "board": self.board.grid.items(),
@@ -105,6 +118,8 @@ class Havannah(Game):
         return Havannah.deserialize(self.serialize())
 
     def __eq__(self, other):
-        return (self.board == other.board and 
+        return (type(self) == type(other) and
+                self.board == other.board and 
                 self.legal_positions == other.legal_positions and
-                super.__eq__(self, other))
+                self.current_agent_id == other.current_agent_id and 
+                self.num_agents == other.num_agents)
