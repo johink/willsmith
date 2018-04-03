@@ -84,15 +84,15 @@ class Havannah(Game):
         return str(self.board)
 
     def __deepcopy__(self, memo):
-        h = Havannah.__new__(Havannah)
+        new = Havannah.__new__(Havannah)
 
         # should rely on inheritance for these attributes
-        h.num_agents = self.num_agents
-        h.current_agent_id = self.current_agent_id
+        new.num_agents = self.num_agents
+        new.current_agent_id = self.current_agent_id
 
-        h.board = deepcopy(self.board)
-        h.legal_positions = copy(self.legal_positions)
-        return h
+        new.board = deepcopy(self.board)
+        new.legal_positions = copy(self.legal_positions)
+        return new
 
     def __eq__(self, other):
         return (type(self) == type(other) and
