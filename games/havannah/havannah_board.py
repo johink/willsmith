@@ -253,11 +253,12 @@ class HavannahBoard:
         return self.__str__()
 
     def __eq__(self, other):
-        return self.winner == other.winner and self.grid == other.grid
+        equal = False
+        if isinstance(self, other.__class__):
+            equal = self.winner == other.winner and self.grid == other.grid
+        return equal
 
     def __hash__(self):
-        # I believe the frozenset will guarantee equal hashes for equal 
-        # sets, but I am not sure and should add some tests for this
         return hash((self.winner, frozenset(self.grid)))
 
     def __deepcopy__(self, memo):

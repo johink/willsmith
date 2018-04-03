@@ -95,15 +95,14 @@ class Havannah(Game):
         return new
 
     def __eq__(self, other):
-        return (type(self) == type(other) and
-                self.board == other.board and 
-                self.legal_positions == other.legal_positions and
-                self.current_agent_id == other.current_agent_id and 
-                self.num_agents == other.num_agents)
+        equal = False
+        if isinstance(self, other.__class__):
+            equal = (self.board == other.board and 
+                        self.legal_positions == other.legal_positions and
+                        self.current_agent_id == other.current_agent_id and 
+                        self.num_agents == other.num_agents)
+        return equal
 
     def __hash__(self):
-        # I believe the frozenset will guarantee equal hashes for equal 
-        # sets, but I am not sure and should add some tests for this
         return hash((self.num_agents, self.current_agent_id, 
-                       frozenset(self.legal_positions), 
-                        self.board))
+                        frozenset(self.legal_positions), self.board))

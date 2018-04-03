@@ -38,3 +38,13 @@ class Hex:
         new.color = self.color
         new.neighbors = copy(self.neighbors)
         return new
+
+    def __eq__(self, other):
+        equal = False
+        if isinstance(self, other.__class__):
+            equal = (self.color == other.color and 
+                        set(self.neighbors) == set(other.neighbors))
+        return equal
+
+    def __hash__(self):
+        return hash((self.color, frozenset(self.neighbors)))
