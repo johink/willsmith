@@ -53,7 +53,7 @@ class Havannah(Game):
         See the Game class for documentation on the progress_game decorator.
         """
         self.board.take_action(action)
-        self.check_for_winner(action)
+        self.board.check_for_winner(action)
         self.legal_positions.remove(action.coord)
 
     def get_winning_id(self):

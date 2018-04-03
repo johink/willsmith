@@ -1,6 +1,7 @@
 from games.havannah.color import Color
 import games.havannah.hex_math as hm
 
+
 class HavannahBoard:
     """
     The board for a game of Havannah, made up of hexes with sides typically 
@@ -26,7 +27,7 @@ class HavannahBoard:
     """
 
     BEGINNER_BOARD_SIZE = 8
-    BOARD_SIZE = 4
+    BOARD_SIZE = 10
 
     def __init__(self):
         self.grid = self._generate_hexes(self.BOARD_SIZE)
@@ -65,7 +66,7 @@ class HavannahBoard:
         """
         Checks the bridge win condition, described in the class docstring.
         """
-        fringe = [coord]
+        fringe = {coord}
         win = False
         visited = set()
         corner_count = 0
@@ -77,15 +78,15 @@ class HavannahBoard:
                 corner_count += 1
                 if corner_count >= 2:
                     win = True
-            neighbors = [x for x in self._get_neighbors(current) if self.grid[x] == color and x not in visited]
-            fringe.extend(neighbors)
+            neighbors = [x for x in self._get_neighbors(current) if self.grid[x] == color and x not in visited and x not in fringe]
+            fringe.union(neighbors)
         return win
 
     def _check_fork(self, coord, color):
         """
         Checks the fork win condition, described in the class docstring.
         """
-        fringe = [coord]
+        fringe = {coord}
         win = False
         visited = set()
         edge_set = set()
@@ -101,8 +102,8 @@ class HavannahBoard:
                     edge_set.add(edge_label)
                     if unique_edge_count >= 3:
                         win = True
-            neighbors = [x for x in self._get_neighbors(current) if self.grid[x] == color and x not in visited]
-            fringe.extend(neighbors)
+            neighbors = [x for x in self._get_neighbors(current) if self.grid[x] == color and x not in visited and x not in fringe]
+            fringe.union(neighbors)
 
         return win
 
@@ -164,7 +165,7 @@ class HavannahBoard:
         For use on edge coordinates to determine the specific edge they 
         lie upon.  Non-edge coordinates are not anticipated.
         """
-        index, _ = max(enumerate(coord), key = lambda x: x[1])
+        index, _ = max(enumerate(coord), key = lambda x: abs(x[1]))
         mapping = {0: "x", 1: "y", 2: "z"}
         label = mapping[index]
 
