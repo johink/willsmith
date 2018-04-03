@@ -18,7 +18,8 @@ class Hex:
         self.color = color
         self.neighbors = self._get_neighbors(coord, board_size)
 
-    def _get_neighbors(self, coord, board_size):
+    @classmethod
+    def _get_neighbors(cls, coord, board_size):
         """
         Calculate the neighbors of a hex, ensuring that coordinates are 
         within the board bounds.
