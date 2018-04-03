@@ -79,7 +79,7 @@ class HavannahBoard:
                 if corner_count >= 2:
                     win = True
             neighbors = [x for x in self._get_neighbors(current) if self.grid[x] == color and x not in visited and x not in fringe]
-            fringe.union(neighbors)
+            fringe.update(neighbors)
         return win
 
     def _check_fork(self, coord, color):
@@ -103,7 +103,7 @@ class HavannahBoard:
                     if unique_edge_count >= 3:
                         win = True
             neighbors = [x for x in self._get_neighbors(current) if self.grid[x] == color and x not in visited and x not in fringe]
-            fringe.union(neighbors)
+            fringe.update(neighbors)
 
         return win
 
