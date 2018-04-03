@@ -1,6 +1,8 @@
 from copy import copy
 
 from games.havannah.color import Color
+from games.havannah.hex import Hex
+
 import games.havannah.hex_math as hm
 
 
@@ -18,14 +20,13 @@ class HavannahBoard:
                     considered parts of an edge
 
     Encodes the gameboard using a dense graph representation stored as a 
-    lookup table from cubic hex coordinates to hex colors.  Also keeps track 
-    of the color of the winner if the game is over.  
-    
+    lookup table from cubic hex coordinates to hexes.  Also keeps track 
+    of the color of the winner if the game is complete.
+
     The coordinates start at (0,0,0) in the center of the board, and each 
     coordinate on the board has the property that x + y + z = 0.
 
-    Edges between graph nodes are implicit from each hex to all of its 
-    neighbors, calculated as needed.
+    Edges are stored in the hexes, calculated as the board is created.
     """
 
     BEGINNER_BOARD_SIZE = 8
@@ -36,7 +37,7 @@ class HavannahBoard:
         self.winner = None
 
     def take_action(self, action):
-        self.grid[action.coord] = action.color
+        self.grid[action.coord].color = action.color
 
     def get_winner(self):
         return self.winner
@@ -46,13 +47,13 @@ class HavannahBoard:
         Generate a list of cubic coordinates for every possible position 
         on the board.
 
-        Then return a dictionary from each coordinate to hex colors.
+        Then return a dictionary from each coordinate to a hex.
         """
         hexes = [(x, y, z) for x in range(-board_size + 1, board_size)
                            for y in range(-board_size + 1, board_size)
                            for z in range(-board_size + 1, board_size)
                                  if x + y + z == 0]
-        return {key: Color.BLANK for key in hexes}
+        return {key: Hex(Color.BLANK, key, board_size) for key in hexes}
 
     def check_for_winner(self, action):
         if self._check_if_won(action):
@@ -80,7 +81,10 @@ class HavannahBoard:
                 corner_count += 1
                 if corner_count >= 2:
                     win = True
-            neighbors = [x for x in self._get_neighbors(current) if self.grid[x] == color and x not in visited and x not in fringe]
+            neighbors = [x for x in self.grid[current].neighbors 
+                            if self.grid[x].color == color and 
+                            x not in visited and 
+                            x not in fringe]
             fringe.update(neighbors)
         return win
 
@@ -104,7 +108,10 @@ class HavannahBoard:
                     edge_set.add(edge_label)
                     if unique_edge_count >= 3:
                         win = True
-            neighbors = [x for x in self._get_neighbors(current) if self.grid[x] == color and x not in visited and x not in fringe]
+            neighbors = [x for x in self.grid[current].neighbors 
+                            if self.grid[x].color == color and 
+                            x not in visited and 
+                            x not in fringe]
             fringe.update(neighbors)
 
         return win
@@ -134,30 +141,6 @@ class HavannahBoard:
         """
         return (abs(max(coord)) == self.BOARD_SIZE - 1) ^ (abs(min(coord)) == self.BOARD_SIZE - 1)
 
-    def _get_neighbors(self, coord):
-        """
-        Calculate the neighbors of a hex, ensuring that coordinates are 
-        within the board bounds.
-
-        Bound checking is performed by keeping track of the min and max 
-        coordinate values and ensuring these fall within the size of the board.
-        """
-        neighbors = []
-        for delta in [(-1, 1, 0), (1, -1, 0), (-1, 0, 1), (1, 0, -1), (0, 1, -1), (0, -1, 1)]:
-            new_coord = []
-            min_val = None
-            max_val = None
-            for i, n in enumerate(delta):
-                val = n + coord[i]
-                if min_val is None or min_val > val:
-                    min_val = val
-                if max_val is None or max_val < val:
-                    max_val = val
-                new_coord.append(val)
-            if max_val < self.BOARD_SIZE and min_val > -self.BOARD_SIZE:
-                neighbors.append(tuple(new_coord))
-        return neighbors
-
     def _get_edge_label(self, coord):
         """
         Convert a hex coordinate into a label {-x, x, -y, y, -z, z} 
@@ -182,7 +165,7 @@ class HavannahBoard:
         Used in the string representation of the board, which assigns an 
         axial coordinate to each hex as it builds the board string.
         """
-        return str(self.grid[hm.axial_to_cubic(col, slant)])
+        return str(self.grid[hm.axial_to_cubic(col, slant)].color)
 
     def __str__(self):
         """
@@ -272,9 +255,26 @@ class HavannahBoard:
     def __eq__(self, other):
         return self.winner == other.winner and self.grid == other.grid
 
+    def __hash__(self):
+        # I believe the frozenset will guarantee equal hashes for equal 
+        # sets, but I am not sure and should add some tests for this
+        return hash((self.winner, frozenset(self.grid)))
+
     def __deepcopy__(self, memo):
-        b = HavannahBoard.__new__(HavannahBoard)
-        memo[id(self)] = b
-        b.grid = copy(self.grid)
-        b.winner = self.winner
-        return b
+        new = HavannahBoard.__new__(HavannahBoard)
+        memo[id(self)] = new
+        new.grid = copy(self.grid)
+        new.winner = self.winner
+        return new
+
+    def _grid_deepcopy(self, memo):
+        """
+        Deepcopy the grid dictionary.
+
+        Manually iterates through to save the overhead calling deepcopy on 
+        the dictionary while still calling the custom deepcopy for Hex.
+        """
+        new = dict()
+        for k, v in self.grid.items:
+            new[k] = deepcopy(v, memo)
+        return new

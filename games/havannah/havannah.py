@@ -94,32 +94,16 @@ class Havannah(Game):
         h.legal_positions = copy(self.legal_positions)
         return h
 
-    def serialize(self):
-        return {
-        "board": self.board.grid.items(),
-        "winner": self.board.winner,
-        "legal": list(self.legal_positions),
-        "agents": self.num_agents,
-        "cur_agent": self.current_agent_id
-        }
-
-    @staticmethod
-    def deserialize(data):
-        h = Havannah.__new__(Havannah)
-        h.num_agents = (data['agents'])
-        h.current_agent_id = data['cur_agent']
-        h.board = HavannahBoard.__new__(HavannahBoard)
-        h.board.grid = dict(data['board'])
-        h.board.winner = data['winner']
-        h.legal_positions = set(data['legal'])
-        return h
-
-    def copy(self):
-        return Havannah.deserialize(self.serialize())
-
     def __eq__(self, other):
         return (type(self) == type(other) and
                 self.board == other.board and 
                 self.legal_positions == other.legal_positions and
                 self.current_agent_id == other.current_agent_id and 
                 self.num_agents == other.num_agents)
+
+    def __hash__(self):
+        # I believe the frozenset will guarantee equal hashes for equal 
+        # sets, but I am not sure and should add some tests for this
+        return hash((self.num_agents, self.current_agent_id, 
+                       frozenset(self.legal_positions), 
+                        self.board))
