@@ -25,8 +25,9 @@ class NestedTTT(Game):
     """
 
     ACTION = TTTAction
+    NUM_PLAYERS = 2
 
-    def __init__(self, num_agents):
+    def __init__(self):
         """
         Initialize the state for the game and checking for legal moves.
 
@@ -38,7 +39,7 @@ class NestedTTT(Game):
         if a move is legal, and also faster generation of the available legal 
         actions in get_legal_actions.
         """
-        super().__init__(num_agents)
+        super().__init__()
 
         bs = TTTBoard.BOARD_SIZE
 
@@ -49,7 +50,7 @@ class NestedTTT(Game):
 
     def get_legal_actions(self):
         move = self._agent_id_to_move(self.current_agent_id)
-        return [TTTAction(outer_pos, inner_pos, move) 
+        return [self.ACTION(outer_pos, inner_pos, move) 
                     for outer_pos, inner_pos  in self.legal_positions]
 
     def get_winning_id(self):

@@ -8,7 +8,7 @@ from games.ttt.ttt_move import TTTMove
 class TestNestedTTT(TestCase):
     
     def setUp(self):
-        self.game = NestedTTT(2)
+        self.game = NestedTTT()
 
     def test_winning_inner_win_triggers_outer_action(self):
         outer_pos = (0, 0)

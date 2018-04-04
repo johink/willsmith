@@ -28,15 +28,16 @@ class Havannah(Game):
     """
 
     ACTION = HavannahAction
+    NUM_PLAYERS = 2
 
-    def __init__(self, num_agents):
-        super().__init__(num_agents)
+    def __init__(self):
+        super().__init__()
         self.board = HavannahBoard()
         self.legal_positions = set(self.board.grid.keys())
 
     def get_legal_actions(self):
         color = self._agent_id_to_color(self.current_agent_id)
-        return [HavannahAction(coord, color) for coord in self.legal_positions]
+        return [self.ACTION(coord, color) for coord in self.legal_positions]
 
     def is_legal_action(self, action):
         """

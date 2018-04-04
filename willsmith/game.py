@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from copy import deepcopy
 from random import choice
 
+from willsmith.action import Action
+
 
 class Game(ABC):
     """
@@ -13,13 +15,32 @@ class Game(ABC):
     The interface enforced by this class is used by Agent instances to 
     determine their next action and Simulator to control the game as they run 
     agents through a match.
+
+    The ACTION class attribute is expected to be a subclass of the Action 
+    base class.
+
+    The NUM_PLAYERS class attributed is required to set the number of agents 
+    expected for the game.
     """
 
     ACTION = None
+    NUM_PLAYERS = None
 
-    def __init__(self, num_agents):
-        self.num_agents = num_agents
+    def __init__(self):
+        """
+        Start the game with the first player and sets the number of agents 
+        for keeping this index within bounds.
+
+        Also runs checks to ensure the class attributes have been properly 
+        assigned by subclass.
+        """
+        self.num_agents = self.NUM_PLAYERS
         self.current_agent_id = 0
+
+        if not issubclass(self.ACTION, Action):
+            raise RuntimeError("Game must set own action subclass.")
+        if self.NUM_PLAYERS is None:
+            raise RuntimeError("Game must set expected number of players.")
 
     @abstractmethod
     def get_legal_actions(self):

@@ -9,23 +9,25 @@ class Simulator():
     def __init__(self, game, agent_list, time_allowed, display_controller):
         """
         Store the game and agent classes for later instantiation when a 
-        simulation is started.  Also stores the display controller for 
-        use during simulation.
+        simulation is started.  
+        
+        Also checks the number of players expected by the game matches the 
+        number of agents provided.
         """
         self.game = game
         self.agents = agent_list
         self.time_allowed = time_allowed
         self.display_controller = display_controller
 
-        self.current_game = None
-        self.current_agents = None
+        if len(self.agents) != self.game.NUM_PLAYERS:
+            raise RuntimeError("Incorrect number of agents for game type.")
 
     def initialize_match(self):
         """
         Create instances of the game and the agents, in preparation for a 
         new simulation.
         """
-        self.current_game = self.game(len(self.agents))
+        self.current_game = self.game()
         self.current_agents = [agent(i) for i, agent in enumerate(self.agents)]
 
         self._add_prompt_to_human_agents(self.current_game.ACTION.prompt_for_action)
