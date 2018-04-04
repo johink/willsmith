@@ -53,11 +53,6 @@ class NestedTTT(Game):
                     for outer_pos, inner_pos  in self.legal_positions]
 
     def get_winning_id(self):
-        """
-        Return the id of the agent who won the game.  
-        None is the default value,  indicating either a draw or that the game 
-        is still ongoing.
-        """
         winner_id = None
         if self.outer_board.winner is not None:
             winner_id = self._move_to_agent_id(self.outer_board.winner)
@@ -82,9 +77,11 @@ class NestedTTT(Game):
         """
         r, c = action.outer_pos
 
-        board_won = self.inner_boards[r][c].take_action(action.inner_pos, action.move)
+        self.inner_boards[r][c].take_action(action.inner_pos, action.move)
+        board_won = self.inner_boards[r][c].check_for_winner(action.move)
         if board_won:
             self.outer_board.take_action(action.outer_pos, action.move)
+            self.outer_board.check_for_winner(action.move)
 
         self._remove_illegal_positions(action.outer_pos, action.inner_pos, board_won)
 
@@ -92,8 +89,8 @@ class NestedTTT(Game):
         """
         Remove the pair of positions from the set of legal positions.
 
-        If the given move was a board winning one, all of the remaining open 
-        squares on the inner board are now illegal and are removed as well.
+        If the position won the board, all the remaining open squares on 
+        that inner board are now illegal and removed as well.
         """
         self.legal_positions.remove((outer_pos, inner_pos))
         if board_won:
@@ -114,7 +111,7 @@ class NestedTTT(Game):
 
     def __str__(self):
         """
-        Return a string of the gameboard the looks like this:
+        Return a string of the gameboard that looks like this:
 
         [  X  ] | [  O  ] | [O X O]
         [     ] | [X   O] | [O    ]

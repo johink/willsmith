@@ -14,6 +14,7 @@ class TTTBoard:
     all possible winning board configurations.  This solved a problem where 
     the calculation after every move to determine if the board was won slowed 
     down simulation of games to a crawl.  
+
     Now, the program pauses momentarily at the start of the game to calculate 
     this set.  Then, for the rest of the game a win check only requires the 
     calculation of the hash of the board state, drastically reducing the time 
@@ -27,8 +28,8 @@ class TTTBoard:
         """
         Initialize the board with blank squares and no winner.
 
-        Also, checks if the winning configurations set has been generated and 
-        generates it if not.
+        On the first instantiation of the class it also generates the set 
+        of winning board configurations.
         """
         self.board = [[TTTMove.BLANK for _ in range(TTTBoard.BOARD_SIZE)] for _ in range(TTTBoard.BOARD_SIZE)]
         self.winner = None
@@ -38,15 +39,10 @@ class TTTBoard:
 
     def take_action(self, position, move):
         """
-        Applies the action to the board.
-        Returns whether the board is won or not after this action.
+        Applies the move to the board position.
         """
         r, c = position
         self.board[r][c] = move
-        won = self.check_if_won()
-        if won:
-            self.winner = move
-        return won
 
     def get_winner(self):
         """
@@ -54,10 +50,20 @@ class TTTBoard:
         """
         return self.winner
 
-    def check_if_won(self):
+    def check_for_winner(self, move):
         """
-        Look in the winning positions to see if the current board state is 
-        a win.
+        Check if the board has been won, returning a boolean to indicate this.
+
+        If the board is won, update the winner attribute to the given move.
+        """
+        won = self._check_if_won()
+        if won:
+            self.winner = move
+        return won
+
+    def _check_if_won(self):
+        """
+        Check if the board is won by comparing it to the set of winning boards.
         """
         return tuple(map(tuple, self.board)) in self.winning_positions
 

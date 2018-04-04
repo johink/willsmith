@@ -49,28 +49,21 @@ class Havannah(Game):
 
     def _take_action(self, action):
         """
-        Take the given action on the game board, and remove the position from 
-        the set of legal positions.
-
-        See the Game class for documentation on the progress_game decorator.
+        Take the given action on the game board, check it for a win, and 
+        remove that action from the set of legal positions
         """
         self.board.take_action(action)
         self.board.check_for_winner(action)
         self.legal_positions.remove(action.coord)
 
     def get_winning_id(self):
-        """
-        Return the id of the agent who won the game.  
-        None is the default value,  indicating either a draw or that the game 
-        is still ongoing.
-        """
         winner = self.board.get_winner()
         if winner is not None:
             winner = self._color_to_agent_id(winner)
         return winner
 
     def is_terminal(self):
-        return len(self.legal_positions) == 0 or self.board.get_winner() is not None
+        return not bool(self.legal_positions) or self.board.get_winner() is not None
 
     def _agent_id_to_color(self, agent_id):
         lookup = {0 : Color.BLUE, 1 : Color.RED}
