@@ -34,12 +34,9 @@ def create_parser():
     parser.add_argument("game_choice", type = str, 
                         choices = NESTEDTTT_LABELS + HAVANNAH_LABELS,
                         help = "The game for the agents to play")
-    parser.add_argument("-a", "--agent1", type = str, default = "mcts",
-                        choices = AGENT_LABELS,
-                        help = "Agent type for player 1")
-    parser.add_argument("-b", "--agent2", type = str, default = "rand",
-                        choices = AGENT_LABELS,
-                        help = "Agent type for player 2")
+    parser.add_argument("-a", "--agents", nargs = '*', 
+                        default = ["mcts", "rand"], choices = AGENT_LABELS, 
+                        help = "Agent types")
     parser.add_argument("-c", "--console-render", action = "store_true",
                         default = False,
                         help = "Render the game on the command-line")
@@ -81,11 +78,12 @@ if __name__ == "__main__":
     else:
         raise RuntimeError("Unexpected game type.")
 
-    agent1 = lookup_agent(args.agent1)
-    agent2 = lookup_agent(args.agent2)
-
-    if agent1 is None or agent2 is None:
-        raise RuntimeError("Unexpected agent type.")
+    agents = []
+    for agent_str in args.agents:
+        agent = lookup_agent(agent_str)
+        if agent is None:
+            raise RuntimeError("Unexpected agent type.")
+        agents.append(agent)
         
     if args.no_render:
         display = NoDisplay
@@ -96,5 +94,5 @@ if __name__ == "__main__":
 
     num_games = args.num_games
 
-    simulator = Simulator(game, [agent1, agent2], time, display())
+    simulator = Simulator(game, agents, time, display())
     simulator.run_games(num_games)
