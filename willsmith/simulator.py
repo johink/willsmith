@@ -31,7 +31,7 @@ class Simulator():
         self.current_agents = [agent(i) for i, agent in enumerate(self.agents)]
 
         self._add_prompt_to_human_agents(self.current_game.ACTION.prompt_for_action)
-        self.display_controller.reset_display()
+        self.display_controller.reset_display(self.current_game)
         
     def run_games(self, num_games):
         """

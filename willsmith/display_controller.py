@@ -22,7 +22,7 @@ class DisplayController(ABC):
         pass
 
     @abstractmethod
-    def reset_display(self):
+    def reset_display(self, game):
         """
         Return the display to an initial state.
         """

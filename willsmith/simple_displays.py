@@ -18,7 +18,7 @@ class ConsoleDisplay(DisplayController):
     def start(self):
         pass
 
-    def reset_display(self):
+    def reset_display(self, game):
         print(self.CLEAR_TERMINAL)
 
     def update_display(self, game, action):
@@ -36,7 +36,7 @@ class NoDisplay(DisplayController):
     def start(self):
         pass
 
-    def reset_display(self):
+    def reset_display(self, game):
         pass
 
     def update_display(self, game, action):

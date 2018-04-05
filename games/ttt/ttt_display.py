@@ -40,7 +40,7 @@ class TTTDisplay(DisplayController):
         self._place_widgets()
         self._update_window()
 
-    def reset_display(self):
+    def reset_display(self, game):
         """
         Update each board position label with a blank move.
         """

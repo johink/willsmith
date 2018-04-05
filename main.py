@@ -15,6 +15,7 @@ from agents.mcts_agent import MCTSAgent
 from agents.random_agent import RandomAgent
 
 from games.havannah.havannah import Havannah
+from games.havannah.havannah_display import HavannahDisplay
 
 from games.ttt.nested_ttt import NestedTTT
 from games.ttt.ttt_display import TTTDisplay
@@ -74,7 +75,7 @@ if __name__ == "__main__":
         display = TTTDisplay
     elif args.game_choice in HAVANNAH_LABELS:
         game = Havannah
-        display = ConsoleDisplay
+        display = HavannahDisplay
     else:
         raise RuntimeError("Unexpected game type.")
 
