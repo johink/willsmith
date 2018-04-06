@@ -55,22 +55,22 @@ class Simulator():
         while not self.current_game.is_terminal():
             current_agent = self.current_agents[self.current_game.current_agent_id]
             action = current_agent.search(self.current_game.copy(), self.time_allowed)
-
             self._advance_by_action(action)
-            self.display_controller.update_display(self.current_game, action)
 
         print("Winning agent id:  {}".format(self.current_game.get_winning_id()))
 
     def _advance_by_action(self, action):
         """
-        Pass the action to the game to progress the game state.  
+        Update the game, agents, and display with the given action.
 
-        Only if it is legal, the game state and agents are updated with the 
-        action.
+        The update only applies if the action is deemed legal by the game.  
+        Illegal actions still progress the game by a turn, skipping the agent 
+        who provided the action.
         """
         if self.current_game.take_action_if_legal(action):
             for agent in self.current_agents:
                 agent.take_action(action)
+            self.display_controller.update_display(self.current_game, action)
     
     def _add_prompt_to_human_agents(self, action_prompt):
         """

@@ -77,17 +77,6 @@ class Havannah(Game):
     def __str__(self):
         return str(self.board)
 
-    def __deepcopy__(self, memo):
-        new = Havannah.__new__(Havannah)
-
-        # should rely on inheritance for these attributes
-        new.num_agents = self.num_agents
-        new.current_agent_id = self.current_agent_id
-
-        new.board = deepcopy(self.board)
-        new.legal_positions = copy(self.legal_positions)
-        return new
-
     def __eq__(self, other):
         equal = False
         if isinstance(self, other.__class__):
@@ -100,3 +89,15 @@ class Havannah(Game):
     def __hash__(self):
         return hash((self.num_agents, self.current_agent_id, 
                         frozenset(self.legal_positions), self.board))
+
+    def __deepcopy__(self, memo):
+        new = Havannah.__new__(Havannah)
+
+        # should rely on inheritance for these attributes
+        new.num_agents = self.num_agents
+        new.current_agent_id = self.current_agent_id
+
+        new.board = deepcopy(self.board)
+        new.legal_positions = copy(self.legal_positions)
+        return new
+

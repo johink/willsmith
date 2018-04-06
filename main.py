@@ -41,13 +41,13 @@ def create_parser():
     parser.add_argument("-c", "--console-render", action = "store_true",
                         default = False,
                         help = "Render the game on the command-line")
+    parser.add_argument("-n", "--num_games", type = int, default = 1,
+                        help = "Number of successive game simulations to run.")
     parser.add_argument("-r", "--no_render", action = "store_true", 
                         default = False,
                         help = "Do not display the game on each turn.")
     parser.add_argument("-t", "--time_allotted", type = float, default = 0.5,
                         help = "Time allotted for agent moves")
-    parser.add_argument("-n", "--num_games", type = int, default = 1,
-                        help = "Number of successive game simulations to run.")
     return parser
 
 def lookup_agent(agent_str):

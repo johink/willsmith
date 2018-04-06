@@ -31,11 +31,21 @@ class HavannahAction(Action):
 
         return HavannahAction(coord, color)
 
+    def __str__(self):
+        return "{} : {}".format(self.coord, self.color)
+
     def __eq__(self, other):
         equal = False
         if isinstance(self, other.__class__):
-            equal = self.coord == other.coord and self.color == other.coord
+            equal = self.coord == other.coord and self.color == other.color
         return equal
 
     def __hash__(self):
         return hash((self.coord, self.color))
+
+    def __deepcopy__(self, memo):
+        new = HavannahAction.__new__(HavannahAction)
+        memo[id(self)] = new
+        new.coord = self.coord
+        new.color = self.color
+        return new
