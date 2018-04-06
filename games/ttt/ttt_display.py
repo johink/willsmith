@@ -1,16 +1,18 @@
-from tkinter import Frame, Label, SUNKEN, Tk
+from tkinter import Frame, Label, SUNKEN
 
 from games.ttt.ttt_move import TTTMove
 
-from willsmith.display_controller import DisplayController
+from willsmith.gui_display_controller import GUIDisplayController
 
 
-class TTTDisplay(DisplayController):
+class TTTDisplay(GUIDisplayController):
     """
     The display controller for NestedTTT games.
 
     Creates a Tkinter GUI that displays each of the boards.
     """
+
+    WINDOW_TITLE = "Nested Tic-Tac-Toe"
 
     BOARD_DIM = 3
 
@@ -21,26 +23,12 @@ class TTTDisplay(DisplayController):
     FRAME_BORDER_WIDTH = 1
     FRAME_RELIEF = SUNKEN
 
-    WINDOW_TITLE = "Nested Tic-Tac-Toe"
-
     def __init__(self):
-        """
-        Declare the attributes needed for the GUI.
-        """
-        self.root = None
+        super().__init__()
         self.outer_board = None
         self.inner_boards = None
 
-    def start(self):
-        """
-        Initialize the root window and the display widgets.
-        """
-        self.root = self._initialize_root()
-        self._initialize_widgets()
-        self._place_widgets()
-        self._update_window()
-
-    def reset_display(self, game):
+    def _reset_display(self, game):
         """
         Update each board position label with a blank move.
         """
@@ -50,12 +38,11 @@ class TTTDisplay(DisplayController):
                     for ic, _ in enumerate(irow):
                         self._update_label((r,c), (ir,ic), TTTMove.BLANK)
 
-    def update_display(self, game, action):
+    def _update_display(self, game, action):
         """
         Update the board labels with the latest action taken.
         """
         self._update_label(action.outer_pos, action.inner_pos, action.move)
-        self._update_window()
     
     def _update_label(self, outer_pos, inner_pos, new_label):
         """
@@ -64,18 +51,6 @@ class TTTDisplay(DisplayController):
         r, c = outer_pos
         ir, ic = inner_pos
         self.inner_boards[r][c][ir][ic]["text"] = new_label
-
-    def _initialize_root(self):
-        """
-        Create the window root and update it's configuration.
-        """
-        root = Tk()
-        root.title(self.WINDOW_TITLE)
-        return root
-
-    def _update_window(self):
-        self.root.update_idletasks()
-        self.root.update()
 
     def _initialize_widgets(self):
         """

@@ -15,9 +15,6 @@ class DisplayController(ABC):
     def start(self):
         """
         Initialize the display elements.
-
-        For instance, initializing the root window and widgets for a Tkinter
-        GUI.
         """
         pass
 

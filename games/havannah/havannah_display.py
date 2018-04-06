@@ -1,12 +1,12 @@
-from tkinter import Tk, Canvas
+from tkinter import Canvas
 
 from games.havannah.color import Color
 from games.havannah.hex_math import cubic_to_axial
 
-from willsmith.display_controller import DisplayController
+from willsmith.gui_display_controller import GUIDisplayController
 
 
-class HavannahDisplay(DisplayController):
+class HavannahDisplay(GUIDisplayController):
     """
     The display controller for Havannah games.
 
@@ -35,22 +35,10 @@ class HavannahDisplay(DisplayController):
     CANVAS_CENTER = (CANVAS_WIDTH // 2 - HEX_WIDTH // 2, CANVAS_HEIGHT // 2)
 
     def __init__(self):
-        """
-        Declare the attributes needed for the GUI.
-        """
-        self.root = None
+        super().__init__()
         self.canvas = None
 
-    def start(self):
-        """
-        Initialize the root window and the display widgets.
-        """
-        self.root = self._initialize_root()
-        self._initialize_widgets()
-        self._place_widgets()
-        self._update_window()
-
-    def reset_display(self, game):
+    def _reset_display(self, game):
         """
         Update the board with blank hexes.
         """
@@ -58,22 +46,13 @@ class HavannahDisplay(DisplayController):
             canvas_coord = self._havannah_coord_to_canvas_coord(coord)
             self._draw_hex(canvas_coord, self.HEX_BLANK)
 
-    def update_display(self, game, action):
+    def _update_display(self, game, action):
         """
-        Redraw the hex from the given action.
+        Redraw the hex using the given action.
         """
         canvas_coord = self._havannah_coord_to_canvas_coord(action.coord)
         canvas_color = self._havannah_color_to_canvas_color(action.color)
         self._draw_hex(canvas_coord, canvas_color)
-        self._update_window()
-
-    def _initialize_root(self):
-        """
-        Create the window root and update it's configuration.
-        """
-        root = Tk()
-        root.title(self.WINDOW_TITLE)
-        return root
 
     def _initialize_widgets(self):
         self.canvas = Canvas(self.root, width = self.CANVAS_WIDTH, 
@@ -81,10 +60,6 @@ class HavannahDisplay(DisplayController):
 
     def _place_widgets(self):
         self.canvas.pack()
-
-    def _update_window(self):
-        self.root.update_idletasks()
-        self.root.update()
 
     def _havannah_coord_to_canvas_coord(self, coord):
         """
