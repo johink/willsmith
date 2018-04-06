@@ -1,37 +1,37 @@
-from math import sqrt
 from tkinter import Tk, Canvas
 
 from games.havannah.color import Color
+from games.havannah.hex_math import cubic_to_axial
 
 from willsmith.display_controller import DisplayController
-
-import games.havannah.hex_math as hm
 
 
 class HavannahDisplay(DisplayController):
     """
     The display controller for Havannah games.
 
-    Creates a Tkinter GUI that displays the board.
+    Creates a Tkinter GUI with a Canvas that is used to draw the hexes.  
+
+    Board coordinates are converted to a canvas pixel location, where this 
+    new canvas location is the left-most point of the given (flat-topped) 
+    hex.  This is the reason for the half-hex shift of the canvas center.
+
+    Hex width should be divisible by 4 so that all of the math is on 
+    integers.
     """
+
+    WINDOW_TITLE = "Havannah"
 
     HEX_BLANK = "#FFFFFF"
     HEX_BLUE = "#0000FF"
     HEX_RED = "#FF0000"
-
-    # not sure exactly how the border works.  Does it take from the inside
-    # or the outside of the hex?  The total hex size needs to be divisible by 
-    # 4 to keep the coordinate math simple
-    HEX_BORDER = 2
     HEX_BORDER_COLOR = "#000000"
-    HEX_WIDTH = 32
 
-    WINDOW_TITLE = "Havannah"
+    HEX_WIDTH = 32
+    HEX_BORDER = 2
 
     CANVAS_HEIGHT = HEX_WIDTH * 20
     CANVAS_WIDTH = HEX_WIDTH * 16
-    # half hex width is needed because havannah (0,0,0) is converted to 
-    # the leftmost point of the hex for drawing
     CANVAS_CENTER = (CANVAS_WIDTH // 2 - HEX_WIDTH // 2, CANVAS_HEIGHT // 2)
 
     def __init__(self):
@@ -92,22 +92,13 @@ class HavannahDisplay(DisplayController):
         that is the starting point of the hex.
 
         The resulting coordinate is the left-most point in the hex.  Hexes 
-        are the flat-topped variety.
+        are the flat-topped.
         """
-        col, slant = hm.cubic_to_axial(*coord)
+        col, slant = cubic_to_axial(*coord)
         canvas_x, canvas_y = self.CANVAS_CENTER
 
         canvas_x += col * self.HEX_WIDTH // 4 * 3
         canvas_y += (col * self.HEX_WIDTH // 2) + (slant * self.HEX_WIDTH)
-
-        return (canvas_x, canvas_y)
-
-    def _other(self, coord):
-        col, slant = hm.cubic_to_axial(*coord)
-        canvas_x, canvas_y = self.CANVAS_CENTER
-
-        canvas_x += self.HEX_WIDTH // 2 * 3 * col
-        canvas_y += self.HEX_WIDTH * sqrt(3) * (slant + col / 2)
 
         return (canvas_x, canvas_y)
 
@@ -129,12 +120,17 @@ class HavannahDisplay(DisplayController):
     def _draw_hex(self, coord, color):
         """
         Draw a colored hex at the given coord.
+
+        The deltas correspond to the coordinate shift moving from the current 
+        point along the edge to the next point of the hex for each of the 6 
+        points.
         """
-        deltas = [(self.HEX_WIDTH // 4, self.HEX_WIDTH // 2), 
+        deltas = [(0,0), (self.HEX_WIDTH // 4, self.HEX_WIDTH // 2),
                     (self.HEX_WIDTH // 2, 0), 
                     (self.HEX_WIDTH // 4, -self.HEX_WIDTH // 2),
                     (-self.HEX_WIDTH // 4, -self.HEX_WIDTH // 2),
                     (-self.HEX_WIDTH // 2, 0)]
+
         points = [coord]
         x, y = coord
         for dx, dy in deltas:
