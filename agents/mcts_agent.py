@@ -79,8 +79,7 @@ class MCTSAgent(Agent):
         Uses the UCB algorithm to determine which nodes to progress to.
         """
         node = self.root
-
-        unexplored_actions = set(state.get_legal_actions()) - set(node.children.keys())
+        unexplored_actions = len(state.get_legal_actions()) > len(node.children.keys())
         terminal = state.is_terminal()
 
         while not unexplored_actions and not terminal:
@@ -89,7 +88,7 @@ class MCTSAgent(Agent):
             state.take_action_if_legal(action)
             node = node.get_child(action)
 
-            unexplored_actions = set(state.get_legal_actions()) - set(node.children.keys())
+            unexplored_actions = len(state.get_legal_actions()) > len(node.children.keys())
             terminal = state.is_terminal()
 
         return state, node, terminal
@@ -104,7 +103,6 @@ class MCTSAgent(Agent):
         action = choice([action for action in state.get_legal_actions() if action not in node.children])
         new_child = self.Node(node, state.current_agent_id)
         node.add_child(action, new_child)
-
         state.take_action_if_legal(action)
 
         return state, new_child
@@ -147,10 +145,10 @@ class MCTSAgent(Agent):
         mini = None
         for action in self.root.children:
             node = self.root.children[action]
-            value = node._value_estimate()
-            if maxi is None or value > maxi._value_estimate():
+            value = node.value_estimate()
+            if maxi is None or value > maxi.value_estimate():
                 maxi = node
-            if mini is None or value < mini._value_estimate():
+            if mini is None or value < mini.value_estimate():
                 mini = node
         return maxi, mini
 
@@ -185,7 +183,7 @@ class MCTSAgent(Agent):
                 self.wins += 1
             self.trials += 1
 
-        def _value_estimate(self):
+        def value_estimate(self):
             return self.wins / self.trials
 
         def max_trials(self):
@@ -201,20 +199,18 @@ class MCTSAgent(Agent):
             that expresses node value as:
 
             (exploitation)
-            num wins at node / num trials node +
-
+            num wins at node / num trials node
+            +
             (exploration)
             exploration parameter * sqrt(ln(total trials) / num trials at node)
             """
             valid_actions = state.get_legal_actions()
+            exploration_estimate = self.EXPLORATION_PARAM * sqrt(log(total_trials) / self.trials)
+
             results = {}
-
             for action in valid_actions:
-                value_estimate = self.get_child(action)._value_estimate()
-                exploration_estimate = self.EXPLORATION_PARAM * sqrt(log(total_trials) / self.trials)
-
+                value_estimate = self.get_child(action).value_estimate()
                 results[action] = value_estimate + exploration_estimate
-
             return max(results.keys(), key=results.get)
 
         def add_child(self, action, node):
@@ -227,4 +223,4 @@ class MCTSAgent(Agent):
             return bool(self.children)
 
         def __str__(self):
-                return "ID:{},{}/{}".format(self.agent_id, self.wins, self.trials)
+            return "ID:{},{}/{}".format(self.agent_id, self.wins, self.trials)

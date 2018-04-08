@@ -12,12 +12,9 @@ class HavannahBoard:
     of length 10.
 
     The game is won by forming one of three configurations:
-    (descriptions from Wikipedia - https://en.wikipedia.org/wiki/Havannah)
-        Ring - loop around one or more cells, where the encircled cells are 
-                occupied by the other player or empty
-        Bridge - connect any two of the six corner cells of the board
-        Fork -  connect any three edges of the board; corner points are not 
-                    considered parts of an edge
+        Ring - connect a loop enclosing at least one hex
+        Bridge - connect any two of the corner hexes
+        Fork -  connect any three board edges, excluding corners
 
     Encodes the gameboard using a dense graph representation stored as a 
     lookup table from cubic hex coordinates to hexes.  Also keeps track 
@@ -62,8 +59,8 @@ class HavannahBoard:
     def _check_if_won(self, action):
         coord, color = action.coord, action.color
         return (self._check_bridge(coord, color)
-                or self._check_fork(coord, color)
-                or self._check_ring(coord, color))
+                    or self._check_fork(coord, color)
+                    or self._check_ring(coord, color))
 
     def _check_bridge(self, coord, color):
         """
@@ -82,9 +79,9 @@ class HavannahBoard:
                 if corner_count >= 2:
                     win = True
             neighbors = [x for x in self.grid[current].neighbors 
-                            if self.grid[x].color == color and 
-                            x not in visited and 
-                            x not in fringe]
+                            if self.grid[x].color == color 
+                                and x not in visited 
+                                and x not in fringe]
             fringe.update(neighbors)
         return win
 
@@ -109,9 +106,9 @@ class HavannahBoard:
                     if unique_edge_count >= 3:
                         win = True
             neighbors = [x for x in self.grid[current].neighbors 
-                            if self.grid[x].color == color and 
-                            x not in visited and 
-                            x not in fringe]
+                            if self.grid[x].color == color 
+                                and x not in visited 
+                                and x not in fringe]
             fringe.update(neighbors)
 
         return win
@@ -129,7 +126,8 @@ class HavannahBoard:
         Corner hex coordinates are always some combination of 
         {board_size - 1, -board_size + 1, 0}
         """
-        return max(coord) == self.BOARD_SIZE - 1 and abs(min(coord)) == self.BOARD_SIZE - 1
+        return (max(coord) == self.BOARD_SIZE - 1 
+                    and abs(min(coord)) == self.BOARD_SIZE - 1)
 
     def _check_if_edge(self, coord):
         """
@@ -139,7 +137,8 @@ class HavannahBoard:
         Edges, excluding corners, always have one and only one coordinate 
         that satisfies the condition - abs(coord) == board_size - 1
         """
-        return (abs(max(coord)) == self.BOARD_SIZE - 1) ^ (abs(min(coord)) == self.BOARD_SIZE - 1)
+        return ((abs(max(coord)) == self.BOARD_SIZE - 1) 
+                    ^ (abs(min(coord)) == self.BOARD_SIZE - 1))
 
     def _get_edge_label(self, coord):
         """
