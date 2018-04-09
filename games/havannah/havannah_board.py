@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from games.havannah.color import Color
-from games.havannah.hex import Hex
+from games.havannah.hex_node import HexNode
 
 import games.havannah.hex_math as hm
 
@@ -50,7 +50,7 @@ class HavannahBoard:
                            for y in range(-board_size + 1, board_size)
                            for z in range(-board_size + 1, board_size)
                                  if x + y + z == 0]
-        return {key: Hex(Color.BLANK, key, board_size) for key in hexes}
+        return {key: HexNode(Color.BLANK, key, board_size) for key in hexes}
 
     def check_for_winner(self, action):
         if self._check_if_won(action):

@@ -1,7 +1,7 @@
 from copy import copy
 
 
-class Hex:
+class HexNode:
     """
     Represents the data needed for a hex in Havannah, and a node in the graph 
     of the board.
@@ -34,7 +34,7 @@ class Hex:
         return neighbors
 
     def __deepcopy__(self, memo):
-        new = Hex.__new__(Hex)
+        new = HexNode.__new__(HexNode)
         memo[id(self)] = new
         new.color = self.color
         new.neighbors = copy(self.neighbors)
