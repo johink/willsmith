@@ -34,6 +34,9 @@ class HavannahAction(Action):
     def __str__(self):
         return "{} : {}".format(self.coord, self.color)
 
+    def __repr__(self):
+        return self.__str__()
+
     def __eq__(self, other):
         equal = False
         if isinstance(self, other.__class__):

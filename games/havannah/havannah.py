@@ -33,18 +33,26 @@ class Havannah(Game):
     def __init__(self):
         super().__init__()
         self.board = HavannahBoard()
-        self.legal_positions = set(self.board.grid.keys())
+
+        cur_color = self._agent_id_to_color(self.current_agent_id)
+        self.legal_actions = {coord : self.ACTION(coord, cur_color) 
+                                for coord in self.board.grid.keys()}
 
     def get_legal_actions(self):
-        color = self._agent_id_to_color(self.current_agent_id)
-        return [self.ACTION(coord, color) for coord in self.legal_positions]
+        self._update_legal_actions()
+        return list(self.legal_actions.values())
+    
+    def _update_legal_actions(self):
+        cur_color = self._agent_id_to_color(self.current_agent_id)
+        for action in self.legal_actions.values():
+            action.color = cur_color
 
     def is_legal_action(self, action):
         """
         Check that the action's position is legal and that the action's color 
         matches the expected color for the current turn.
         """
-        legal_position = action.coord in self.legal_positions
+        legal_position = action.coord in self.legal_actions
         legal_color = action.color == self._agent_id_to_color(self.current_agent_id) 
         return legal_position and legal_color
 
@@ -55,7 +63,7 @@ class Havannah(Game):
         """
         self.board.take_action(action)
         self.board.check_for_winner(action)
-        self.legal_positions.remove(action.coord)
+        del self.legal_actions[action.coord]
 
     def get_winning_id(self):
         winner = self.board.get_winner()
@@ -64,7 +72,7 @@ class Havannah(Game):
         return winner
 
     def is_terminal(self):
-        return not bool(self.legal_positions) or self.board.get_winner() is not None
+        return not self.legal_actions or self.board.get_winner() is not None
 
     def _agent_id_to_color(self, agent_id):
         lookup = {0 : Color.BLUE, 1 : Color.RED}
@@ -81,14 +89,14 @@ class Havannah(Game):
         equal = False
         if isinstance(self, other.__class__):
             equal = (self.board == other.board and 
-                        self.legal_positions == other.legal_positions and
+                        self.legal_actions == other.legal_actions and
                         self.current_agent_id == other.current_agent_id and 
                         self.num_agents == other.num_agents)
         return equal
 
     def __hash__(self):
         return hash((self.num_agents, self.current_agent_id, 
-                        frozenset(self.legal_positions), self.board))
+                        frozenset(self.legal_actions), self.board))
 
     def __deepcopy__(self, memo):
         new = Havannah.__new__(Havannah)
@@ -98,6 +106,8 @@ class Havannah(Game):
         new.current_agent_id = self.current_agent_id
 
         new.board = deepcopy(self.board)
-        new.legal_positions = copy(self.legal_positions)
+        new.legal_actions = self._deepcopy_legal_actions(memo)
         return new
-
+    
+    def _deepcopy_legal_actions(self, memo):
+        return {k : deepcopy(v, memo) for k, v in self.legal_actions.items()}
