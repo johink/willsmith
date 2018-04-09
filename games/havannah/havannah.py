@@ -31,18 +31,33 @@ class Havannah(Game):
     NUM_PLAYERS = 2
 
     def __init__(self):
+        """
+        Generate the board and the initial legal actions for the game.  
+
+        Actions are stored in a coord -> action dictionary to provide fast 
+        checking if a position is empty and legal and also allow updating the 
+        color attribute of the actions when get_legal_actions is called.
+        """
         super().__init__()
         self.board = HavannahBoard()
+        self.legal_actions = self._generate_initial_legal_actions()
 
+    def _generate_initial_legal_actions(self):
         cur_color = self._agent_id_to_color(self.current_agent_id)
-        self.legal_actions = {coord : self.ACTION(coord, cur_color) 
-                                for coord in self.board.grid.keys()}
-
+        return {coord : self.ACTION(coord, cur_color) 
+                    for coord in self.board.grid.keys()}
+    
     def get_legal_actions(self):
         self._update_legal_actions()
         return list(self.legal_actions.values())
-    
+
     def _update_legal_actions(self):
+        """
+        Update each of the actions stored in the legal_actions dictionary to 
+        the current color.
+
+        Used to keep get_legal_actions result in sync with the game.
+        """
         cur_color = self._agent_id_to_color(self.current_agent_id)
         for action in self.legal_actions.values():
             action.color = cur_color
