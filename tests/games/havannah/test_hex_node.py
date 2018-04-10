@@ -23,3 +23,26 @@ class TestHexNode(TestCase):
         calculated_neighbors = set(HexNode._get_neighbors((0, 0, 0), self.board_size))
         self.assertEqual(calculated_neighbors, expected_neighbors)
 
+    def test_get_edge_label_x_check(self):
+        for edge in [(3, -1, -2), (3, -2, -1)]:
+            label = HexNode._get_edge_label(edge)
+            self.assertEqual(label, "x")
+        for edge in [(-3, 1, 2), (-3, 2, 1)]:
+            label = HexNode._get_edge_label(edge)
+            self.assertEqual(label, "-x")
+        
+    def test_get_edge_label_y_check(self):
+        for edge in [(-2, 3, -1), (-1, 3, -2)]:
+            label = HexNode._get_edge_label(edge)
+            self.assertEqual(label, "y")
+        for edge in [(2, -3, 1), (1, -3, 2)]:
+            label = HexNode._get_edge_label(edge)
+            self.assertEqual(label, "-y")
+
+    def test_get_edge_label_z_check(self):
+        for edge in [(-2, -1, 3), (-1, -2, 3)]:
+            label = HexNode._get_edge_label(edge)
+            self.assertEqual(label, "z")
+        for edge in [(2, 1, -3), (1, 2, -3)]:
+            label = HexNode._get_edge_label(edge)
+            self.assertEqual(label, "-z")

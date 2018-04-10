@@ -35,16 +35,17 @@ class HavannahBoard:
 
     def take_action(self, action):
         self.grid[action.coord].color = action.color
+        self._union_with_neighbors(action.coord, action.color)
 
-    def union(self, first_coord, second_coord):
+    def _union(self, first_coord, second_coord):
         """
         Merge two sets within the board to have the same root.
 
         Also updates root information on the relevant progress towards a win by
         fork or bridge.
         """
-        root1 = self.grid[self.find(first_coord)]
-        root2 = self.grid[self.find(second_coord)]
+        root1 = self.grid[self._find(first_coord)]
+        root2 = self.grid[self._find(second_coord)]
 
         if root1 != root2:
             if root1.size < root2.size:
@@ -55,7 +56,7 @@ class HavannahBoard:
             root1.num_corners += root2.num_corners
             root1.edge_labels.update(root2.edge_labels)
 
-    def find(self, coord):
+    def _find(self, coord):
         """
         Traverse from a coordinate to the root node, updating parent nodes along
         the way to flatten the node tree
@@ -86,18 +87,19 @@ class HavannahBoard:
                                  if x + y + z == 0]
         return {key: HexNode(Color.BLANK, key, board_size) for key in hexes}
 
-    def check_for_winner(self, action):
-        """
-        """
-        coord, color = action.coord, action.color
-        # get same color neighbors
+    def _union_with_neighbors(self, coord, color):
         neighbors = [x for x in self.grid[coord].neighbors
                         if self.grid[x].color == color]
 
         for neighbor in neighbors:
-            self.union(coord, neighbor)
+            self._union(coord, neighbor)
 
-        root = self.grid[self.find(coord)]
+    def check_for_winner(self, action):
+        """
+        """
+        coord, color = action.coord, action.color
+
+        root = self.grid[self._find(coord)]
         if (root.num_corners >= 2                       # bridge
                 or len(root.edge_labels) >= 3           # fork
                 or self._check_ring(coord, color)):     # ring

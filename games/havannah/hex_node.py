@@ -49,7 +49,8 @@ class HexNode:
         return ((abs(max(coord)) == board_size - 1)
                     ^ (abs(min(coord)) == board_size - 1))
 
-    def _get_edge_label(self, coord):
+    @classmethod
+    def _get_edge_label(cls, coord):
         """
         Convert a hex coordinate into a label {-x, x, -y, y, -z, z}
         corresponding to the negative-most and positive-most rows of the

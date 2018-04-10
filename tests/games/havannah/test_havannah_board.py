@@ -19,55 +19,31 @@ class TestHavannahBoard(TestCase):
         for coord in [(-3, 0, 3), (-3, 1, 2), (-2, 1, 1), (-2, 2, 0), 
                         (-2, 3, -1)]:
             self.board.take_action(HavannahAction(coord, Color.BLUE))
-        self.assertFalse(self.board._check_fork((-2, 3, -1), Color.BLUE))
+        self.board.check_for_winner(HavannahAction((-2, 3, -1), Color.BLUE))
+        self.assertNotEqual(self.board.winner, Color.BLUE)
 
     def test_check_fork_error_example_1(self):
         for coord in [(1, 1, -2), (2, 1, -3), (-2, 0, 2), 
                         (-3, 1, 2), (-1, 0, 1), (0, 0, 0), (1, 2, -3), 
                         (0, 1, -1), (-3, 0, 3)]:
             self.board.take_action(HavannahAction(coord, Color.BLUE))
-        self.assertFalse(self.board._check_fork((-3, 0, 3), Color.BLUE))
+        self.board.check_for_winner(HavannahAction((-3, 0, 3), Color.BLUE))
+        self.assertNotEqual(self.board.winner, Color.BLUE)
 
     def test_check_fork_error_example_2(self):
         for coord in [(3, -1, -2), (3, 0, -3), (2, 1, -3), (1, 2, -3)]:
             self.board.take_action(HavannahAction(coord, Color.BLUE))
-        self.assertFalse(self.board._check_fork((1, 2, -3), Color.BLUE))
+        self.board.check_for_winner(HavannahAction((1, 2, -3), Color.BLUE))
+        self.assertNotEqual(self.board.winner, Color.BLUE)
 
     def test_check_bridge_error_example_1(self):
         for coord in [(0, 3, -3), (0, 2, -2), (1, 2, -3)]:
             self.board.take_action(HavannahAction(coord, Color.BLUE))
-        self.assertFalse(self.board._check_bridge((1, 2, -3), Color.BLUE))
+        self.board.check_for_winner(HavannahAction((1, 2, -3), Color.BLUE))
+        self.assertNotEqual(self.board.winner, Color.BLUE)
 
-    def test_get_edge_label_edge_check_1(self):
-        edge_label = self.board._get_edge_label((-3, 1, 2))
-        self.assertEqual(edge_label, "-x")
-
-    def test_get_edge_label_edge_check_2(self):
-        edge_label = self.board._get_edge_label((3, -1, -2))
-        self.assertEqual(edge_label, "x")
-
-    def test_get_edge_label_edge_check_3(self):
-        edge_label = self.board._get_edge_label((2, 1, -3))
-        self.assertEqual(edge_label, "-z")
-
-    def test_get_edge_label_edge_check_4(self):
-        edge_label = self.board._get_edge_label((1, 2, -3))
-        self.assertEqual(edge_label, "-z")
-
-    def test_get_edge_label_edge_check_5(self):
-        edge_label = self.board._get_edge_label((-1, 3, -2))
-        self.assertEqual(edge_label, "y")
-
-    def test_get_edge_label_edge_check_6(self):
-        edge_label = self.board._get_edge_label((1, -3, 2))
-        self.assertEqual(edge_label, "-y")
-
-    def test_get_edge_label_edge_check_7(self):
-        edge_label = self.board._get_edge_label((-2, -1, 3))
-        self.assertEqual(edge_label, "z")
-
-    def test_deepcopy_action_does_not_affect_grid(self):
+    def test_deepcopy_action_does_not_affect_original(self):
         action = HavannahAction((0, 0, 0), Color.BLUE)
         other_board = deepcopy(self.board)
-        other_board.take_action(action)
+        self.board.take_action(action)
         self.assertNotEqual(self.board.grid, other_board.grid)
