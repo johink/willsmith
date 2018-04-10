@@ -1,3 +1,4 @@
+from copy import deepcopy
 from unittest import TestCase
 
 from games.ttt.nested_ttt import NestedTTT
@@ -25,3 +26,22 @@ class TestNestedTTT(TestCase):
                 action = TTTAction(outer_pos, inner_pos, TTTMove.X)
                 self.game._take_action(action)
         self.assertEqual(self.game.outer_board.winner, TTTMove.X)
+
+    def test_deepcopy_is_equal(self):
+        game_copy = deepcopy(self.game)
+        self.assertEqual(self.game, game_copy)
+
+    def test_deepcopy_action_does_not_affect_orig(self):
+        game_copy = deepcopy(self.game)
+        game_copy._take_action(TTTAction((0, 0), (0, 0), TTTMove.X))
+        self.assertNotEqual(self.game, game_copy)
+
+    def test_remove_illegal_actions_removes_extra_actions_on_win(self):
+        outer_pos = (0, 0)
+        for inner_pos in [(0, 0), (0, 1), (0, 2)]:
+            action = TTTAction(outer_pos, inner_pos, TTTMove.X)
+            self.game._take_action(action)
+            self.assertFalse(self.game.is_legal_action(action))
+        for inner_pos in [(1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]:
+            action = TTTAction(outer_pos, inner_pos, TTTMove.X)
+            self.assertFalse(self.game.is_legal_action(action))

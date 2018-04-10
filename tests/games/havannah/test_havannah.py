@@ -1,5 +1,4 @@
 from unittest import TestCase
-from timeit import timeit
 
 from games.havannah.color import Color
 from games.havannah.havannah import Havannah

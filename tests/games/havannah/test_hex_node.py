@@ -8,6 +8,10 @@ class TestHexNode(TestCase):
     
     def setUp(self):
         self.board_size = 4
+        self.node = HexNode(Color.BLUE, (0, 0, 0), self.board_size)
+
+    def test_new_node_is_root(self):
+        self.assertTrue(self.node.is_root())
 
     def test_get_neighbors_edge_coord_neighbors_inside_board(self):
         expected_neighbors = {(-3, 1, 2), (-2, 0, 2), (-2, -1, 3)}

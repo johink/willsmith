@@ -47,3 +47,10 @@ class TestHavannahBoard(TestCase):
         other_board = deepcopy(self.board)
         self.board.take_action(action)
         self.assertNotEqual(self.board.grid, other_board.grid)
+
+    def test_check_ring_error_example(self):
+        for coord in [(1, 0, -1), (0, 1, -1), (-1, 1, 0), (-1, 0, 1),
+                        (0, -1, 1), (0, 0, 0)]:
+            self.board.take_action(HavannahAction(coord, Color.BLUE))
+        self.board._check_ring((0, 0, 0), Color.BLUE)
+        self.assertNotEqual(self.board.winner, Color.BLUE)
