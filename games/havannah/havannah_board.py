@@ -117,7 +117,48 @@ class HavannahBoard:
         """
         Checks the ring win condition, described in the class docstring.
         """
-        return False
+        # Initial state:  Just-placed node is prior node, then for each neighbor -> run algorithm
+        # with neighbor as current node
+        neighbors = [x for x in self.grid[coord].neighbors
+                        if self.grid[x].color == color]
+        win = False
+
+        for neighbor in neighbors:
+            win = self._recursive_ring(color, coord, neighbor, set())
+            if win:
+                break
+
+        return win
+
+    def _recursive_ring(self, color, prior_coord, current_coord, visited_set):
+        """
+        # Assume we have a prior node, and a current node
+        # If we traverse only the neighbors of current node which are not adjacent
+        # to prior node, and we eventually reach a visited node, we must have surrounded
+        # other nodes
+        """
+        if current_coord in visited_set:
+            return True
+
+        previous_neighbors = set(self.grid[prior_coord].neighbors)
+        previous_neighbors.add(prior_coord)
+
+        valid_neighbors = {x for x in self.grid[current_coord].neighbors
+                            if self.grid[x].color == color
+                            and x not in previous_neighbors}
+
+        if not valid_neighbors:
+            win = False
+        else:
+            visited_set.add(current_coord)
+            for neighbor in valid_neighbors:
+                win = self._recursive_ring(color, current_coord, neighbor, visited_set)
+                if win:
+                    break
+
+            visited_set.remove(current_coord)
+
+        return win
 
     def _check_if_corner(self, coord):
         """
