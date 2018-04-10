@@ -1,24 +1,52 @@
 from copy import copy
 
+
 class HexNode:
     """
+    Represents a hex node in the Havannah game board.
+
+    Keeps track of information needed for the gamestate, its graph edges, 
+    union-find set info, and progress towards a win condition.
+
+    * Non-root nodes are not kept up-to-date with the win progress, they are 
+    * guaranteed to be out of date once they are unioned with any other 
+    * subset that has progress towards a win.
+    *
+    * Only reference root nodes when checking win progress.
     """
 
     def __init__(self, color, coord, board_size):
-        """
-        """
+        # game attributes
+        self.color = color
+        self.coord = coord
+
+        # union-find attributes
         self.parent = coord
         self.size = 1
 
-        self.color = color
-        self.coord = coord
+        # win check attributes
         self.neighbors = []
         self.num_corners = 0
         self.edge_labels = set()
+
         self._initialize_attributes(board_size)
+
+    def is_root(self):
+        return self.coord == self.parent
+
+    def update_win_progress(self, other_node):
+        """
+        Update all of the attributes that are used in win condition checking.
+        """
+        self.num_corners += other_node.num_corners
+        self.edge_labels.update(other_node.edge_labels)
 
     def _initialize_attributes(self, board_size):
         """
+        Perform the pre-calculation of hex node information for:
+            - list of neighbors
+            - if node is a corner
+            - if a node is an edge, which edge if so
         """
         self.neighbors = self._get_neighbors(self.coord, board_size)
 
@@ -69,7 +97,6 @@ class HexNode:
             label = "-" + label
         return label
 
-
     @classmethod
     def _get_neighbors(cls, coord, board_size):
         """
@@ -77,9 +104,8 @@ class HexNode:
         within the board bounds.
         """
         neighbors = []
-        for delta in [(-1, 1, 0), (1, -1, 0), (-1, 0, 1), (1, 0, -1), (0, 1, -1), (0, -1, 1)]:
-            # could optimize this by running a for loop and keeping track of
-            # min and max as the addition is done
+        for delta in [(-1, 1, 0), (1, -1, 0), (-1, 0, 1), 
+                        (1, 0, -1), (0, 1, -1), (0, -1, 1)]:
             new_tuple = tuple([x + y for x,y in zip(coord, delta)])
             if max(new_tuple) < board_size and min(new_tuple) > -board_size:
                 neighbors.append(new_tuple)
@@ -110,6 +136,6 @@ class HexNode:
         return equal
 
     def __hash__(self):
-        return hash((self.parent, self.size, self.color, self.coord,
-                        frozenset(self.neighbors), self.num_corners,
-                        self.edge_labels))
+        return hash((self.parent, self.size, self.color, 
+                        self.coord, frozenset(self.neighbors), 
+                        self.num_corners, self.edge_labels))

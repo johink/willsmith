@@ -35,7 +35,7 @@ class Havannah(Game):
         Generate the board and the initial legal actions for the game.  
 
         Actions are stored in a coord -> action dictionary to provide fast 
-        checking if a position is empty and legal and also allow updating the 
+        checking if a position is legal and also allow easy updating of the 
         color attribute of the actions when get_legal_actions is called.
         """
         super().__init__()

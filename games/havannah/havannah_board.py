@@ -16,63 +16,24 @@ class HavannahBoard:
         Bridge - connect any two of the corner hexes
         Fork -  connect any three board edges, excluding corners
 
-    Encodes the gameboard using a dense graph representation stored as a
-    lookup table from cubic hex coordinates to hexes.  Also keeps track
-    of the color of the winner if the game is complete.
+    The game grid is encoded as a lookup table from coordinates to HexNode 
+    instances.  These nodes store their current color, a neighbor(edge) list, 
+    and other information relevant to win checking.  
+
+    As well as implementing a simple symmetric directed graph, the board also 
+    implements a union-find data structure.  As actions are taken on the 
+    board, a hex that is colored is unioned with its same color neighbors to 
+    create subsets that store progress towards a win condition.
 
     The coordinates start at (0,0,0) in the center of the board, and each
     coordinate on the board has the property that x + y + z = 0.
-
-    Edges are stored in the hexes, calculated as the board is created.
     """
 
-    BEGINNER_BOARD_SIZE = 8
     BOARD_SIZE = 10
 
     def __init__(self):
         self.grid = self._generate_hexes(self.BOARD_SIZE)
         self.winner = None
-
-    def take_action(self, action):
-        self.grid[action.coord].color = action.color
-        self._union_with_neighbors(action.coord, action.color)
-
-    def _union(self, first_coord, second_coord):
-        """
-        Merge two sets within the board to have the same root.
-
-        Also updates root information on the relevant progress towards a win by
-        fork or bridge.
-        """
-        root1 = self.grid[self._find(first_coord)]
-        root2 = self.grid[self._find(second_coord)]
-
-        if root1 != root2:
-            if root1.size < root2.size:
-                root1, root2 = root2, root1
-
-            root2.parent = root1.coord
-            root1.size += root2.size
-            root1.num_corners += root2.num_corners
-            root1.edge_labels.update(root2.edge_labels)
-
-    def _find(self, coord):
-        """
-        Traverse from a coordinate to the root node, updating parent nodes along
-        the way to flatten the node tree
-
-        Returns a coordinate instead of a node, for a consistent public interface
-        """
-        node = self.grid[coord]
-        while node.parent != node.coord:
-            next_node = self.grid[node.parent]
-            node.parent = next_node.parent
-            node = next_node
-
-        return node.coord
-
-    def get_winner(self):
-        return self.winner
 
     def _generate_hexes(self, board_size):
         """
@@ -87,26 +48,90 @@ class HavannahBoard:
                                  if x + y + z == 0]
         return {key: HexNode(Color.BLANK, key, board_size) for key in hexes}
 
-    def _union_with_neighbors(self, coord, color):
-        neighbors = [x for x in self.grid[coord].neighbors
-                        if self.grid[x].color == color]
+    def take_action(self, action):
+        """
+        Color the hex at the given coordinate.
+        """
+        self.grid[action.coord].color = action.color
+        self._union_with_neighbors(action.coord, action.color)
 
-        for neighbor in neighbors:
-            self._union(coord, neighbor)
+    def _union_with_neighbors(self, coord, color):
+        """
+        Call _union method on coord with each of its same color neighbors.
+        """
+        for neighbor in self.grid[coord].neighbors:
+            if self.grid[neighbor].color == color:
+                self._union(coord, neighbor)
+
+    def _union(self, coord1, coord2):
+        """
+        Merge the smaller subset into the larger subset.
+
+        This updates the nodes referenced by both coordinates to have the 
+        same representative element.
+
+        The win condition information in the new root is updated to include 
+        the progress made by both sets.
+
+        * Non-root nodes are not kept up-to-date with the win progress, they 
+        * are guaranteed to be out of date once they are unioned with any 
+        * other subset that has progress towards a win.
+        *
+        * Only reference root nodes when checking win progress.
+        """
+        # retrieve nodes referenced by the coordinates
+        root1 = self.grid[self._find(coord1)]
+        root2 = self.grid[self._find(coord2)]
+
+        if root1 != root2:  # no need to union if they are already connected
+            if root1.size < root2.size:     # ensure larger subset is first
+                root1, root2 = root2, root1
+
+            root2.parent = root1.coord
+            root1.size += root2.size
+
+            root1.update_win_progress(root2)
+
+    def _find(self, coord):
+        """
+        Traverse from the node referenced by the coordinate to its root node.
+        Then return the coordinate of the root node.
+
+        During the traversal, parent coordinates are updated with coords 
+        from further up in the tree.  This has a flattening effect to keep 
+        the number of traversal steps low.
+        """
+        node = self.grid[coord]
+        while not node.is_root():
+            next_node = self.grid[node.parent]
+            node.parent = next_node.parent
+            node = next_node
+
+        return node.coord
+
+    def get_winner(self):
+        return self.winner
 
     def check_for_winner(self, action):
         """
-        """
-        coord, color = action.coord, action.color
+        Check if the last action taken triggered a win.
 
-        root = self.grid[self._find(coord)]
-        if (root.num_corners >= 2                       # bridge
-                or len(root.edge_labels) >= 3           # fork
-                or self._check_ring(coord, color)):     # ring
-            self.winner = color
+        This check relies on the union-find nodes keeping track of their 
+        progress towards a win condition for bridge and fork.  Checking for a 
+        ring is still a graph traversal.
+        """
+        root = self.grid[self._find(action.coord)]
+        if (root.num_corners >= 2                                   # bridge
+                or len(root.edge_labels) >= 3                       # fork
+                or self._check_ring(action.coord, action.color)):   # ring
+            self.winner = action.color
 
     def _check_ring(self, coord, color):
         """
+        Check if coord references a ring win.
+
+        Relies on the _recursive_ring method called on each of the coord and 
+        neighbor pairs.
         """
         neighbors = [x for x in self.grid[coord].neighbors
                         if self.grid[x].color == color]
@@ -115,35 +140,37 @@ class HavannahBoard:
             win = self._recursive_ring(color, coord, neighbor, set())
             if win:
                 break
-
         return win
 
     def _recursive_ring(self, color, prior_coord, current_coord, visited_set):
         """
-        If we traverse only the neighbors of current node which are not 
-        adjacent to prior node, and we eventually reach a visited node, we 
-        must have surrounded other nodes
+        Traverse the grid checking for cycles that surround another node.
+
+        The traversal only progresses to neighbors of the current coordinate 
+        that are NOT adjacent to the previous coordinate.  
+        
+        This condition ensures that a previously visited coordinate(visited) 
+        cannot be reached without traversing around one or more central hexes.
         """
-        if current_coord in visited_set:
-            return True
-
-        previous_neighbors = set(self.grid[prior_coord].neighbors)
-        previous_neighbors.add(prior_coord)
-
-        valid_neighbors = {x for x in self.grid[current_coord].neighbors
-                            if self.grid[x].color == color
-                            and x not in previous_neighbors}
-
-        if not valid_neighbors:
-            win = False
+        if current_coord in visited_set:    # completed a cycle
+            win = True
         else:
-            visited_set.add(current_coord)
-            for neighbor in valid_neighbors:
-                win = self._recursive_ring(color, current_coord, neighbor, visited_set)
-                if win:
-                    break
-
-            visited_set.remove(current_coord)
+            previous_neighbors = set(self.grid[prior_coord].neighbors)
+            previous_neighbors.add(prior_coord)
+            valid_neighbors = {x for x in self.grid[current_coord].neighbors
+                                if self.grid[x].color == color
+                                    and x not in previous_neighbors}
+            if not valid_neighbors:
+                win = False
+            else:
+                # the visited set adds and removes current_coord in this 
+                # block to prevent the need to generate copies of the set
+                visited_set.add(current_coord)
+                for neighbor in valid_neighbors:
+                    win = self._recursive_ring(color, current_coord, neighbor, visited_set)
+                    if win:
+                        break
+                visited_set.remove(current_coord)
 
         return win
 
@@ -207,7 +234,7 @@ class HavannahBoard:
 
             result.append("".join(sub_result))
 
-            # n, not n-1 steps back because of the format call on ln 205
+            # n, not n-1 steps back because of the call prior to the last loop
             col, slant = hm.axial_n_moves(hm.axial_west, n, col, slant)
             col, slant = hm.axial_s_east(col, slant)
 
