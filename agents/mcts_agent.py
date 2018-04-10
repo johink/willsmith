@@ -53,8 +53,7 @@ class MCTSAgent(Agent):
                 self._backpropagation(winning_id, current_node)
             runs += 1
 
-        next_action = self.root.max_trials()
-        return next_action
+        return self.root.max_trials()
 
     def take_action(self, action):
         """
