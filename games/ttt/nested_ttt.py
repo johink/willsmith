@@ -1,3 +1,5 @@
+from copy import copy, deepcopy
+
 from games.ttt.ttt_action import TTTAction
 from games.ttt.ttt_board import TTTBoard
 from games.ttt.ttt_move import TTTMove
@@ -41,17 +43,28 @@ class NestedTTT(Game):
         """
         super().__init__()
 
-        bs = TTTBoard.BOARD_SIZE
-
         self.outer_board = TTTBoard()
-        self.inner_boards = [[TTTBoard() for _ in range(bs)] for _ in range(bs)]
+        self.inner_boards = [[TTTBoard() for _ in range(TTTBoard.BOARD_SIZE)] 
+                                for _ in range(TTTBoard.BOARD_SIZE)]
 
-        self.legal_positions = {((r, c), (ir, ic)) for r in range(bs) for c in range(bs) for ir in range(bs) for ic in range(bs)}
+        self.legal_actions = self._generate_initial_legal_actions()
+
+    def _generate_initial_legal_actions(self):
+        cur_move = self._agent_id_to_move(self.current_agent_id)
+        return {((r, c), (ir, ic)) : self.ACTION((r, c), (ir, ic), cur_move) 
+                    for r in range(TTTBoard.BOARD_SIZE)
+                    for c in range(TTTBoard.BOARD_SIZE)
+                        for ir in range(TTTBoard.BOARD_SIZE)
+                        for ic in range(TTTBoard.BOARD_SIZE)}
 
     def get_legal_actions(self):
-        move = self._agent_id_to_move(self.current_agent_id)
-        return [self.ACTION(outer_pos, inner_pos, move) 
-                    for outer_pos, inner_pos  in self.legal_positions]
+        self._update_legal_actions()
+        return list(self.legal_actions.values())
+
+    def _update_legal_actions(self):
+        cur_move = self._agent_id_to_move(self.current_agent_id)
+        for action in self.legal_actions.values():
+            action.move = cur_move
 
     def get_winning_id(self):
         winner_id = None
@@ -64,7 +77,7 @@ class NestedTTT(Game):
         Check that the action's position is legal and that the action's move 
         matches the expected move for the current turn.
         """
-        legal_position = (action.outer_pos, action.inner_pos) in self.legal_positions
+        legal_position = (action.outer_pos, action.inner_pos) in self.legal_actions
         legal_move = action.move == self._agent_id_to_move(self.current_agent_id)
         return legal_position and legal_move
 
@@ -84,22 +97,27 @@ class NestedTTT(Game):
             self.outer_board.take_action(action.outer_pos, action.move)
             self.outer_board.check_for_winner(action.move)
 
-        self._remove_illegal_positions(action.outer_pos, action.inner_pos, board_won)
+        self._remove_illegal_actions(action.outer_pos, action.inner_pos, board_won)
 
-    def _remove_illegal_positions(self, outer_pos, inner_pos, board_won):
+    def _remove_illegal_actions(self, outer_pos, inner_pos, board_won):
         """
-        Remove the pair of positions from the set of legal positions.
+        Remove the position from the legal actions.
 
         If the position won the board, all the remaining open squares on 
         that inner board are now illegal and removed as well.
         """
-        self.legal_positions.remove((outer_pos, inner_pos))
+        del self.legal_actions[(outer_pos, inner_pos)]
         if board_won:
-            self.legal_positions -= {(outer_pos, (r, c)) for r in range(TTTBoard.BOARD_SIZE) for c in range(TTTBoard.BOARD_SIZE)}
+            for r in range(TTTBoard.BOARD_SIZE):
+                for c in range(TTTBoard.BOARD_SIZE):
+                    try:
+                        del self.legal_actions[(outer_pos, (r, c))]
+                    except KeyError:    # moves that have already been taken
+                        pass
 
     def is_terminal(self):
         is_winner = self.outer_board.get_winner() is not None
-        moves_left = bool(self.legal_positions)
+        moves_left = bool(self.legal_actions)
         return is_winner or not moves_left
 
     def _agent_id_to_move(self, agent_id):
@@ -134,3 +152,32 @@ class NestedTTT(Game):
                 result.append("-"*27)
         board_string = "\n".join(result)
         return board_string.replace(',', '')
+
+    def __eq__(self, other):
+        equal = False
+        if isinstance(self, other.__class__):
+            equal = (self.outer_board == other.outer_board
+                        and self.inner_boards == other.inner_boards
+                        and self.legal_actions == other.legal_actions
+                        and self.current_agent_id == other.current_agent_id
+                        and self.num_agents == other.num_agents)
+        return equal
+
+    def __hash__(self):
+        return hash((self.num_agents, self.current_agent_id, 
+                        self.outer_board, self.inner_boards, 
+                        frozenset(self.legal_actions)))
+
+    def __deepcopy__(self, memo):
+        new = NestedTTT.__new__(NestedTTT)
+        memo[id(self)] = new
+
+        # should rely on inheritance for these attributes
+        new.num_agents = self.num_agents
+        new.current_agent_id = self.current_agent_id
+
+        new.outer_board = deepcopy(self.outer_board, memo)
+        new.inner_boards = [deepcopy(board, memo) for board in self.inner_boards]
+        new.legal_actions = {k : deepcopy(v, memo) 
+                                for k, v in self.legal_actions.items()}
+        return new

@@ -1,3 +1,4 @@
+from copy import copy
 from itertools import product
 
 from games.ttt.ttt_move import TTTMove
@@ -66,6 +67,22 @@ class TTTBoard:
         Check if the board is won by comparing it to the set of winning boards.
         """
         return tuple(map(tuple, self.board)) in self.winning_positions
+
+    def __eq__(self, other):
+        equal = False
+        if isinstance(self, other.__class__):
+            equal = self.winner == other.winner and self.board == other.board
+        return equal
+
+    def __hash__(self):
+        return hash((self.winner, frozenset(self.board)))
+
+    def __deepcopy__(self, memo):
+        new = TTTBoard.__new__(TTTBoard)
+        memo[id(self)] = new
+        new.board = [copy(iboard) for iboard in self.board]
+        new.winner = self.winner
+        return new
 
     @staticmethod
     def generate_winning_positions():

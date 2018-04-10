@@ -50,3 +50,11 @@ class TTTAction(Action):
 
     def __hash__(self):
         return hash((self.outer_pos, self.inner_pos, self.move))
+
+    def __deepcopy__(self, memo):
+        new = TTTAction.__new__(TTTAction)
+        memo[id(self)] = new
+        new.outer_pos = self.outer_pos
+        new.inner_pos = self.inner_pos
+        new.move = self.move
+        return new

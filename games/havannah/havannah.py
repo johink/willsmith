@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 
 from games.havannah.havannah_action import HavannahAction
 from games.havannah.color import Color
@@ -103,10 +103,10 @@ class Havannah(Game):
     def __eq__(self, other):
         equal = False
         if isinstance(self, other.__class__):
-            equal = (self.board == other.board and 
-                        self.legal_actions == other.legal_actions and
-                        self.current_agent_id == other.current_agent_id and 
-                        self.num_agents == other.num_agents)
+            equal = (self.board == other.board 
+                        and self.legal_actions == other.legal_actions 
+                        and self.current_agent_id == other.current_agent_id 
+                        and self.num_agents == other.num_agents)
         return equal
 
     def __hash__(self):
@@ -115,14 +115,13 @@ class Havannah(Game):
 
     def __deepcopy__(self, memo):
         new = Havannah.__new__(Havannah)
+        memo[id(self)] = new
 
         # should rely on inheritance for these attributes
         new.num_agents = self.num_agents
         new.current_agent_id = self.current_agent_id
 
-        new.board = deepcopy(self.board)
-        new.legal_actions = self._deepcopy_legal_actions(memo)
+        new.board = deepcopy(self.board, memo)
+        new.legal_actions = {k : deepcopy(v, memo) 
+                                for k, v in self.legal_actions.items()}
         return new
-    
-    def _deepcopy_legal_actions(self, memo):
-        return {k : deepcopy(v, memo) for k, v in self.legal_actions.items()}
