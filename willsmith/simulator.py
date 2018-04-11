@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from agents.human_agent import HumanAgent
 
 
@@ -19,6 +21,8 @@ class Simulator():
         self.time_allowed = time_allowed
         self.display_controller = display_controller
 
+        self.logger = getLogger(__name__)
+
         if len(self.agents) != self.game.NUM_PLAYERS:
             raise RuntimeError("Incorrect number of agents for game type.")
 
@@ -39,10 +43,11 @@ class Simulator():
         """
         self.display_controller.start()
         for i in range(num_games):
-            print("Game {}/{}".format(i + 1, num_games))
+            self.logger.info("Game {}/{}".format(i + 1, num_games))
             self.initialize_match()
             self._run_game()
-        input("\nGames complete, press enter key to end.")
+        self.logger.info("Games complete")
+        input("\nPress enter key to end.")
 
     def _run_game(self):
         """
@@ -57,7 +62,9 @@ class Simulator():
             action = current_agent.search(self.current_game.copy(), self.time_allowed)
             self._advance_by_action(action)
 
-        print("Winning agent id:  {}".format(self.current_game.get_winning_id()))
+        self.logger.info("Winning agent id:  {}".format(
+                                        self.current_game.get_winning_id()))
+        self.logger.debug("Final board\n{}".format(self.current_game))
 
     def _advance_by_action(self, action):
         """
@@ -67,6 +74,8 @@ class Simulator():
         Illegal actions still progress the game by a turn, skipping the agent 
         who provided the action.
         """
+        self.logger.debug("Agent {} chose action {}".format(
+                            self.current_game.current_agent_id, action))
         if self.current_game.take_action_if_legal(action):
             for agent in self.current_agents:
                 agent.take_action(action)

@@ -9,6 +9,7 @@ See README.md for a full-project breakdown.
 
 
 from argparse import ArgumentParser
+from logging import FileHandler, Formatter, StreamHandler, DEBUG, INFO, getLogger
 
 from agents.human_agent import HumanAgent
 from agents.mcts_agent import MCTSAgent
@@ -25,6 +26,42 @@ HAVANNAH_LABELS = ["Havannah", "hav"]
 NESTEDTTT_LABELS = ["NestedTTT", "ttt"]
 AGENT_LABELS = ["mcts", "rand", "human"]
 
+LOG_FILENAME = "djjazzyjeff.log"
+FILE_LOG_FORMAT = "%(asctime)s::%(name)s::%(levelname)s::%(message)s"
+STDERR_LOG_FORMAT = "%(message)s"
+TIMESTAMP_FORMAT = "%H:%M:%S"
+
+def create_logger(debug):
+    """
+    Create and configure the root logger that other loggers refer to.
+    
+    There are two handlers, one to write out to the file and one to write 
+    to console.  
+    
+    The console handler is always set to only display INFO level messages to 
+    prevent clutter.  The file handler can be optionally set to DEBUG level 
+    to capture additional information.
+    """
+    stderr_level = INFO
+    file_level = INFO
+    if debug:
+        file_level = DEBUG
+
+    logger = getLogger()
+    logger.setLevel(file_level)
+
+    file_handler = FileHandler(LOG_FILENAME, mode = 'w')
+    file_handler.setLevel(file_level)
+    file_handler.setFormatter(Formatter(FILE_LOG_FORMAT, TIMESTAMP_FORMAT))
+
+    stderr_handler = StreamHandler()
+    stderr_handler.setLevel(stderr_level)
+    stderr_handler.setFormatter(Formatter(STDERR_LOG_FORMAT, TIMESTAMP_FORMAT))
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stderr_handler)
+    return logger
+
 def create_parser():
     parser = ArgumentParser(description = "Run agents through simulations")
 
@@ -37,6 +74,9 @@ def create_parser():
     parser.add_argument("-c", "--console-render", action = "store_true",
                         default = False,
                         help = "Render the game on the command-line")
+    parser.add_argument("-d", "--debug", action = "store_true",
+                        default = False,
+                        help = "Turn on debug-level logging")
     parser.add_argument("-n", "--num_games", type = int, default = 1,
                         help = "Number of successive game simulations to run.")
     parser.add_argument("-r", "--no_render", action = "store_true", 
@@ -46,49 +86,46 @@ def create_parser():
                         help = "Time allotted for agent moves")
     return parser
 
-def lookup_agent(agent_str):
-    """
-    Determine the appropriate class associated with the command-line arg 
-    string.  
-    
-    None is used as a default value for an agent-type that the program does 
-    not currently handle.
-    """
+def lookup_agent(num, agent_str):
     lookup = {"mcts" : MCTSAgent, "rand" : RandomAgent, "human" : HumanAgent}
     try:
         agent = lookup[agent_str]
     except KeyError:
-        agent = None
-
+        raise RuntimeError("Unexpected agent string type.")
+    getLogger().debug("Agent {} is {}".format(num, agent.__name__))
     return agent
+
+def lookup_game(game_str):
+    if game_str in NESTEDTTT_LABELS:
+        game = NestedTTT
+    elif game_str in HAVANNAH_LABELS:
+        game = Havannah
+    else:
+        raise RuntimeError("Unexpected game type.")
+    getLogger().info("Game is {}".format(game.__name__))
+    return game
 
 if __name__ == "__main__":
     parser = create_parser()
     args = parser.parse_args()
 
-    if args.game_choice in NESTEDTTT_LABELS:
-        game = NestedTTT
-    elif args.game_choice in HAVANNAH_LABELS:
-        game = Havannah
-    else:
-        raise RuntimeError("Unexpected game type.")
+    logger = create_logger(args.debug)
 
-    agents = []
-    for agent_str in args.agents:
-        agent = lookup_agent(agent_str)
-        if agent is None:
-            raise RuntimeError("Unexpected agent type.")
-        agents.append(agent)
+    game = lookup_game(args.game_choice)
+    agents = [lookup_agent(i, astr) for i, astr in enumerate(args.agents)]
         
     display = game.DISPLAY
     if args.no_render:
         display = NoDisplay
+        logger.debug("No rendering chosen")
     elif args.console_render:
         display = ConsoleDisplay
+        logger.debug("Console rendering chosen")
 
     time = args.time_allotted
-
+    logger.debug("Agents have {} seconds per turn".format(time))
     num_games = args.num_games
+    logger.debug("{} games will be played".format(num_games))
 
     simulator = Simulator(game, agents, time, display())
     simulator.run_games(num_games)
