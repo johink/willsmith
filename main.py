@@ -71,7 +71,7 @@ def create_parser():
     parser.add_argument("-a", "--agents", nargs = '*', 
                         default = ["mcts", "rand"], choices = AGENT_LABELS, 
                         help = "Agent types")
-    parser.add_argument("-c", "--console-render", action = "store_true",
+    parser.add_argument("-c", "--console_display", action = "store_true",
                         default = False,
                         help = "Render the game on the command-line")
     parser.add_argument("-d", "--debug", action = "store_true",
@@ -79,7 +79,7 @@ def create_parser():
                         help = "Turn on debug-level logging")
     parser.add_argument("-n", "--num_games", type = int, default = 1,
                         help = "Number of successive game simulations to run.")
-    parser.add_argument("-r", "--no_render", action = "store_true", 
+    parser.add_argument("-r", "--no_display", action = "store_true", 
                         default = False,
                         help = "Do not display the game on each turn.")
     parser.add_argument("-t", "--time_allotted", type = float, default = 0.5,
@@ -105,6 +105,14 @@ def lookup_game(game_str):
     getLogger().info("Game is {}".format(game.__name__))
     return game
 
+def adjust_display(game, no_display, console):
+    if no_display:
+        getLogger().debug("Non-display option chosen")
+        game.DISPLAY = NoDisplay
+    elif console:
+        getLogger().debug("Console display chosen")
+        game.DISPLAY = ConsoleDisplay
+
 if __name__ == "__main__":
     parser = create_parser()
     args = parser.parse_args()
@@ -114,18 +122,12 @@ if __name__ == "__main__":
     game = lookup_game(args.game_choice)
     agents = [lookup_agent(i, astr) for i, astr in enumerate(args.agents)]
         
-    display = game.DISPLAY
-    if args.no_render:
-        display = NoDisplay
-        logger.debug("No rendering chosen")
-    elif args.console_render:
-        display = ConsoleDisplay
-        logger.debug("Console rendering chosen")
+    adjust_display(game, args.no_display, args.console_display)
 
     time = args.time_allotted
     logger.debug("Agents have {} seconds per turn".format(time))
     num_games = args.num_games
     logger.debug("{} games will be played".format(num_games))
 
-    simulator = Simulator(game, agents, time, display())
+    simulator = Simulator(game, agents, time)
     simulator.run_games(num_games)

@@ -8,7 +8,7 @@ class Simulator():
     Game simulator that manages running a game and agent players.
     """
 
-    def __init__(self, game, agent_list, time_allowed, display_controller):
+    def __init__(self, game, agent_list, time_allowed):
         """
         Store the game and agent classes for later instantiation when a 
         simulation is started.  
@@ -19,7 +19,7 @@ class Simulator():
         self.game = game
         self.agents = agent_list
         self.time_allowed = time_allowed
-        self.display_controller = display_controller
+        self.display_controller = game.DISPLAY()
 
         self.logger = getLogger(__name__)
 
@@ -62,9 +62,9 @@ class Simulator():
             action = current_agent.search(self.current_game.copy(), self.time_allowed)
             self._advance_by_action(action)
 
-        self.logger.info("Winning agent id:  {}".format(
+        self.logger.info("Winning agent is {}".format(
                                         self.current_game.get_winning_id()))
-        self.logger.debug("Final board\n{}".format(self.current_game))
+        self.logger.debug("Final state\n{}".format(self.current_game))
 
     def _advance_by_action(self, action):
         """
