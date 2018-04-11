@@ -3,6 +3,7 @@ from copy import deepcopy
 from random import choice
 
 from willsmith.action import Action
+from willsmith.display_controller import DisplayController
 
 
 class Game(ABC):
@@ -19,11 +20,15 @@ class Game(ABC):
     The ACTION class attribute is expected to be a subclass of the Action 
     base class.
 
-    The NUM_PLAYERS class attributed is required to set the number of agents 
+    The NUM_PLAYERS class attribute is required to set the number of agents 
     expected for the game.
+
+    The DISPLAY class attribute is required to set the display for the 
+    simulator to use.
     """
 
     ACTION = None
+    DISPLAY = None
     NUM_PLAYERS = None
 
     def __init__(self):
@@ -37,8 +42,10 @@ class Game(ABC):
         self.num_agents = self.NUM_PLAYERS
         self.current_agent_id = 0
 
-        if not issubclass(self.ACTION, Action):
-            raise RuntimeError("Game must set own action subclass.")
+        if self.ACTION is None:
+            raise RuntimeError("Game must set its own action, which must subclass Action.")
+        if self.DISPLAY is None:
+            raise RuntimeError("Game must set its display, which must subclass DisplayController.")
         if self.NUM_PLAYERS is None:
             raise RuntimeError("Game must set expected number of players.")
 

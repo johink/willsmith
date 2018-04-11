@@ -1,8 +1,9 @@
 from copy import deepcopy
 
-from games.havannah.havannah_action import HavannahAction
 from games.havannah.color import Color
+from games.havannah.havannah_action import HavannahAction
 from games.havannah.havannah_board import HavannahBoard
+from games.havannah.havannah_display import HavannahDisplay
 
 from willsmith.game import Game
 
@@ -28,6 +29,7 @@ class Havannah(Game):
     """
 
     ACTION = HavannahAction
+    DISPLAY = HavannahDisplay
     NUM_PLAYERS = 2
 
     def __init__(self):

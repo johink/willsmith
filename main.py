@@ -15,13 +15,9 @@ from agents.mcts_agent import MCTSAgent
 from agents.random_agent import RandomAgent
 
 from games.havannah.havannah import Havannah
-from games.havannah.havannah_display import HavannahDisplay
-
 from games.ttt.nested_ttt import NestedTTT
-from games.ttt.ttt_display import TTTDisplay
 
-from willsmith.simple_displays import ConsoleDisplay
-from willsmith.simple_displays import NoDisplay
+from willsmith.simple_displays import ConsoleDisplay, NoDisplay
 from willsmith.simulator import Simulator
 
 
@@ -72,10 +68,8 @@ if __name__ == "__main__":
 
     if args.game_choice in NESTEDTTT_LABELS:
         game = NestedTTT
-        display = TTTDisplay
     elif args.game_choice in HAVANNAH_LABELS:
         game = Havannah
-        display = HavannahDisplay
     else:
         raise RuntimeError("Unexpected game type.")
 
@@ -86,6 +80,7 @@ if __name__ == "__main__":
             raise RuntimeError("Unexpected agent type.")
         agents.append(agent)
         
+    display = game.DISPLAY
     if args.no_render:
         display = NoDisplay
     elif args.console_render:

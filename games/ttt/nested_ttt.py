@@ -2,6 +2,7 @@ from copy import copy, deepcopy
 
 from games.ttt.ttt_action import TTTAction
 from games.ttt.ttt_board import TTTBoard
+from games.ttt.ttt_display import TTTDisplay
 from games.ttt.ttt_move import TTTMove
 
 from willsmith.game import Game
@@ -27,6 +28,7 @@ class NestedTTT(Game):
     """
 
     ACTION = TTTAction
+    DISPLAY = TTTDisplay
     NUM_PLAYERS = 2
 
     def __init__(self):
