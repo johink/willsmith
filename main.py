@@ -26,7 +26,7 @@ HAVANNAH_LABELS = ["Havannah", "hav"]
 NESTEDTTT_LABELS = ["NestedTTT", "ttt"]
 AGENT_LABELS = ["mcts", "rand", "human"]
 
-LOG_FILENAME = "djjazzyjeff.log"
+LOG_FILENAME = "delspooner.log"
 FILE_LOG_FORMAT = "%(asctime)s::%(name)s::%(levelname)s::%(message)s"
 STDERR_LOG_FORMAT = "%(message)s"
 TIMESTAMP_FORMAT = "%H:%M:%S"
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     time = args.time_allotted
     logger.debug("Agents have {} seconds per turn".format(time))
     num_games = args.num_games
-    logger.debug("{} games will be played".format(num_games))
+    logger.debug("{} game(s) will be played".format(num_games))
 
     simulator = Simulator(game, agents, time)
     simulator.run_games(num_games)

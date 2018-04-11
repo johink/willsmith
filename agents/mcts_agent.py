@@ -28,6 +28,8 @@ class MCTSAgent(Agent):
     def __init__(self, agent_id):
         super().__init__(agent_id)
         self.root = self.Node(None, None)
+        self.last_playout_total = 0
+        self.last_action_node = None
 
     def search(self, state, allotted_time):
         """
@@ -38,9 +40,9 @@ class MCTSAgent(Agent):
         Searches the state space for the best available action, using the above 
         steps.
         """
-        runs = 0
-        start_time = time()
+        playouts = 0
 
+        start_time = time()
         while time() - start_time < allotted_time:
             current_state = state.copy()
             current_state, current_node, game_over = self._selection(current_state)
@@ -51,9 +53,14 @@ class MCTSAgent(Agent):
             else:
                 winning_id = self._simulation(current_state)
                 self._backpropagation(winning_id, current_node)
-            runs += 1
+            playouts += 1
 
-        return self.root.max_trials()
+        max_action = self.root.max_trials()
+        # debug info
+        self.last_playout_total = playouts
+        self.last_action_node = self.root.get_child(max_action)
+
+        return max_action
 
     def take_action(self, action):
         """
@@ -134,25 +141,8 @@ class MCTSAgent(Agent):
             node.update_node(winning_id)
             node = node.parent
 
-    def _get_extreme_actions(self):
-        """
-        Return the nodes with minimum and maximum value estimates in the tree.
-
-        Used for debugging.
-        """
-        maxi = None
-        mini = None
-        for action in self.root.children:
-            node = self.root.children[action]
-            value = node.value_estimate()
-            if maxi is None or value > maxi.value_estimate():
-                maxi = node
-            if mini is None or value < mini.value_estimate():
-                mini = node
-        return maxi, mini
-
     def __str__(self):
-        return "AgentID:Max:[{}], Min:[{}]".format(*self._get_extreme_actions())
+        return "last playouts {} | last action node [{}] | tree max depth {}".format(self.last_playout_total, self.last_action_node, self.root.depth())
 
 
     class Node:
@@ -221,5 +211,11 @@ class MCTSAgent(Agent):
         def has_children(self):
             return bool(self.children)
 
+        def depth(self):
+            depth = 0
+            if self.children:
+                depth = 1 + max([child.depth() for child in self.children.values()])
+            return depth
+
         def __str__(self):
-            return "ID:{},{}/{}".format(self.agent_id, self.wins, self.trials)
+            return "ID{},{}/{}".format(self.agent_id, self.wins, self.trials)

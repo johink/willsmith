@@ -13,7 +13,7 @@ class Simulator():
         Store the game and agent classes for later instantiation when a 
         simulation is started.  
         
-        Also checks the number of players expected by the game matches the 
+        Also checks the number of players expected by the game against the 
         number of agents provided.
         """
         self.game = game
@@ -57,9 +57,14 @@ class Simulator():
         an action selection and then taking that action, until a terminal 
         state of the game is reached.
         """
+        for agent in self.current_agents:
+            self.logger.debug("Agent {} start {}".format(
+                                                        agent.agent_id, agent))
         while not self.current_game.is_terminal():
             current_agent = self.current_agents[self.current_game.current_agent_id]
             action = current_agent.search(self.current_game.copy(), self.time_allowed)
+            self.logger.debug("Agent {} {}".format(
+                                        current_agent.agent_id, current_agent))
             self._advance_by_action(action)
 
         self.logger.info("Winning agent is {}".format(
@@ -74,7 +79,7 @@ class Simulator():
         Illegal actions still progress the game by a turn, skipping the agent 
         who provided the action.
         """
-        self.logger.debug("Agent {} chose action {}".format(
+        self.logger.debug("Agent {} action {}".format(
                             self.current_game.current_agent_id, action))
         if self.current_game.take_action_if_legal(action):
             for agent in self.current_agents:

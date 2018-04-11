@@ -31,3 +31,6 @@ class HumanAgent(Agent):
 
     def take_action(self, action):
         pass
+
+    def __str__(self):
+        return ""
