@@ -1,11 +1,11 @@
-from tkinter import Canvas, Label, BOTTOM, GROOVE
+from tkinter import Label, GROOVE
 
 from willsmith.gui_display_controller import GUIDisplayController
 
 
 class MCTSDisplay(GUIDisplayController):
     """
-    The display controller for and MCTSAgent.
+    The display controller for MCTSAgent.
 
     Creates a Tkinter GUI that displays some stats about the agent's latest 
     moves.
@@ -57,14 +57,3 @@ class MCTSDisplay(GUIDisplayController):
             win_pct = agent.action_node.value_estimate()
         self.win_pct_label["text"] = "Node sim win rate:\n{:.2%}".format(win_pct)
         self.depth_label["text"] = "Node tree depth:\n{}".format(agent.root.depth())
-        
-    def _draw_node_tree_snippet(self, agent):
-        node = agent.root
-        while node.has_children():
-            ranked = sorted(node.children.items(), key=lambda x: x[1].value_estimate())
-            one, two, three  = ranked[:3]
-            last = ranked[-1]
-            self._draw_level(self, one, two, three, last)
-
-    def _draw_level(self, one, two, three, last):
-        pass

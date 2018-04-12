@@ -27,7 +27,7 @@ class MCTSAgent(Agent):
     perspective of the agent they represent.
     """
 
-    DISPLAY = MCTSDisplay
+    GUI_DISPLAY = MCTSDisplay
 
     def __init__(self, agent_id):
         """

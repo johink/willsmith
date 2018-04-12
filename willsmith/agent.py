@@ -8,9 +8,12 @@ class Agent(ABC):
     Subclasses are agents that are capable of searching for and returning 
     actions within an allotted time and updating their internal state based 
     on a given action taken in the game.
+
+    Subclasses that set the DISPLAY attribute will have that display 
+    instantiated when Simulator runs a game using a GUI.
     """
 
-    DISPLAY = None
+    GUI_DISPLAY = None
 
     def __init__(self, agent_id):
         self.agent_id = agent_id

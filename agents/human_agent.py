@@ -1,3 +1,4 @@
+from agents.human_display import HumanDisplay
 from willsmith.agent import Agent
 
 
@@ -8,7 +9,8 @@ class HumanAgent(Agent):
     It relies on its action_prompt attribute, set externally by the 
     simulator, to provide the proper prompts and to construct the action.
     """
-
+    
+    GUI_DISPLAY = HumanDisplay
     INPUT_PROMPT = None
     INPUT_PARSER = None
 
