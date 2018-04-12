@@ -13,15 +13,18 @@ class Action(ABC):
     prompt a user for a game action.
     """
 
+    INPUT_PROMPT = None
+
     def __init__(self):
-        pass
+        if self.INPUT_PROMPT is None:
+            raise RuntimeError("INPUT_PROMPT attribute must be defined by actions.")
 
     @staticmethod
     @abstractmethod
-    def prompt_for_action(legal_actions):
+    def parse_action(input_str):
         """
-        Prompt the user and parse the input of their choice to create an 
-        instance of the Action subclass.
+        Parse an input string, returning an instance of the Action subclass 
+        if the string was valid.
         """
         pass
 

@@ -9,10 +9,14 @@ class HumanAgent(Agent):
     simulator, to provide the proper prompts and to construct the action.
     """
 
+    INPUT_PROMPT = None
+    INPUT_PARSER = None
+
     def __init__(self, agent_id):
         super().__init__(agent_id)
-        
-        self.action_prompt = None
+
+        if self.INPUT_PROMPT is None or self.INPUT_PARSER is None:
+            raise RuntimeError("INPUT_PROMPT and INPUT_PARSER need to be set for HumanAgent to be able to create actions from user input.")
 
     def search(self, state, allotted_time):
         """
@@ -20,17 +24,20 @@ class HumanAgent(Agent):
         return it.
         """
         legal_actions = state.get_legal_actions()
-        player_action = None
+        player_action = HumanAgent.INPUT_PARSER(input(HumanAgent.INPUT_PROMPT))
         while player_action not in legal_actions:
-            if player_action is not None:
-                print("Last move was not legal, please try again.\n")
-
-            player_action = self.action_prompt(legal_actions)
+            print("Last move was not legal, please try again.\n")
+            player_action = HumanAgent.INPUT_PARSER(input(HumanAgent.INPUT_PROMPT))
 
         return player_action
 
     def take_action(self, action):
         pass
+
+    @staticmethod
+    def add_input_info(input_prompt, input_parser):
+        HumanAgent.INPUT_PROMPT = input_prompt
+        HumanAgent.INPUT_PARSER = input_parser
 
     def __str__(self):
         return ""

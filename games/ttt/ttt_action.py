@@ -1,3 +1,5 @@
+from games.ttt.ttt_move import TTTMove
+
 from willsmith.action import Action
 
 
@@ -14,6 +16,8 @@ class TTTAction(Action):
     game-specific prompts on its turn.
     """
 
+    INPUT_PROMPT = "Choose board, board position, and move(r,c;r,c;Move):  "
+
     def __init__(self, outer_pos, inner_pos, move):
         super().__init__()
 
@@ -22,23 +26,16 @@ class TTTAction(Action):
         self.move = move
 
     @staticmethod
-    def prompt_for_action(legal_actions):
-        """
-        Create a TTTAction based on user input.
-
-        Prompts for a choice of inner board, then a position on that board.  
-        Both positions are expected to be in the format "r,c" with no extra 
-        characters, and both r,c are in the range [0,9).
-        """
-        move = legal_actions[0].move
-
-        outer_input = "Choose board for {} move(row,col):  ".format(move)
-        inner_input = "Choose board position for move(row,col):  "
-
-        outer_pos = tuple(map(int, input(outer_input).split(',')))
-        inner_pos = tuple(map(int, input(inner_input).split(',')))
-
-        return TTTAction(outer_pos, inner_pos, move)
+    def parse_action(input_str):
+        try:
+            outer_pos, inner_pos, move = input_str.split(';')
+            outer_pos = tuple(map(int, outer_pos.split(',')))
+            inner_pos = tuple(map(int, inner_pos.split(',')))
+            move = TTTMove[move.upper()]
+            action =TTTAction(outer_pos, inner_pos, move)
+        except ValueError:
+            action = None
+        return action
 
     def __str__(self):
         return "{},{} -> {}".format(self.outer_pos, self.inner_pos, self.move)

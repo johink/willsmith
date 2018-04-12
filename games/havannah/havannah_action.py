@@ -1,3 +1,5 @@
+from games.havannah.color import Color
+
 from willsmith.action import Action
 
 
@@ -8,6 +10,8 @@ class HavannahAction(Action):
     coordinate - cubic hex coordinate in the form (x,y,z)
     color - Blue or Red, corresponding to the player's label
     """
+
+    INPUT_PROMPT = "Choose position and color(x,y,z;Color):  "
     
     def __init__(self, coordinate, color):
         super().__init__()
@@ -16,20 +20,16 @@ class HavannahAction(Action):
         self.color = color
 
     @staticmethod
-    def prompt_for_action(legal_actions):
-        """
-        Create a HavannahAction based on user input.
+    def parse_action(input_str):
+        try:
+            coord, color = input_str.split(';')
+            coord = tuple(map(int, coord.split(',')))
+            color = Color[color.upper()]
+            action = HavannahAction(coord, color)
+        except ValueError:
+            action = None
 
-        Prompts for the hex coordinate, expected to be in the form "x,y,z" 
-        with no extra characters, and all three values are expected in the 
-        range [0,board size).
-        """
-        color = legal_actions[0].color
-
-        prompt = "Choose position for next {} move(x,y,z):  ".format(color)
-        coord = tuple(map(int, input(prompt).split(',')))
-
-        return HavannahAction(coord, color)
+        return action
 
     def __str__(self):
         return "{} -> {}".format(self.coord, self.color)

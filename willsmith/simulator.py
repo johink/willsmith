@@ -10,15 +10,21 @@ class Simulator():
 
     def __init__(self, game, agent_list, time_allowed, gui_display):
         """
-        Store the game and agent classes for later instantiation when a 
+        Prepares all of the objects for a game simulation:
+
+        - Store the game and agent classes for later instantiation when a 
         simulation is started.  
-        
-        Also checks the number of players expected by the game against the 
+        - Adds action information to HumanAgents if they are playing.
+        - Constructs display classes for game and possibly agents.
+        - Retrieves the logger instance for this module.
+        - Checks the number of players expected by the game against the 
         number of agents provided.
         """
         self.game = game
         self.agents = agent_list
         self.time_allowed = time_allowed
+
+        self._add_prompt_to_human_agents(self.game.ACTION)
 
         self.game_display_controller = game.DISPLAY()
         self.agent_display_controllers = dict()
@@ -39,8 +45,6 @@ class Simulator():
         """
         self.current_game = self.game()
         self.current_agents = [agent(i) for i, agent in enumerate(self.agents)]
-
-        self._add_prompt_to_human_agents(self.current_game.ACTION.prompt_for_action)
 
         self.game_display_controller.reset_display(self.current_game)
         for agent_id, display in self.agent_display_controllers.items():
@@ -102,13 +106,11 @@ class Simulator():
                 if agent_id == action_agent_id:
                     display.update_display(self.current_agents[agent_id], action)
     
-    def _add_prompt_to_human_agents(self, action_prompt):
+    def _add_prompt_to_human_agents(self, action):
         """
-        Add the action prompt to all HumanAgent instances.
-
-        Used to update those agents with the proper game-specific prompt so 
-        users can choose actions.
+        Update any HumanAgents with the information needed to input the 
+        actions for the given game.
         """
-        for agent in self.current_agents:
-            if isinstance(agent, HumanAgent):
-                agent.action_prompt = action_prompt
+        for agent in self.agents:
+            if agent == HumanAgent:
+                agent.add_input_info(action.INPUT_PROMPT, action.parse_action)
