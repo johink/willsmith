@@ -41,7 +41,7 @@ class TTTAction(Action):
         return TTTAction(outer_pos, inner_pos, move)
 
     def __str__(self):
-        return "{},{} : {}".format(self.outer_pos, self.inner_pos, self.move)
+        return "{},{} -> {}".format(self.outer_pos, self.inner_pos, self.move)
 
     def __eq__(self, other):
         equal = False
