@@ -181,7 +181,7 @@ class HavannahBoard:
         Used in the string representation of the board, which assigns an
         axial coordinate to each hex as it builds the board string.
         """
-        return str(self.grid[hm.axial_to_cubic(col, slant)].color)
+        return self.grid[hm.axial_to_cubic(col, slant)].color.short_str()
 
     def __str__(self):
         """

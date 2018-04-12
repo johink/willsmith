@@ -15,7 +15,7 @@ class ConsoleDisplay(DisplayController):
 
     CLEAR_TERMINAL = chr(27) + "[2J"
 
-    def start(self):
+    def start(self, is_main):
         pass
 
     def reset_display(self, game):
@@ -33,7 +33,7 @@ class NoDisplay(DisplayController):
     Useful for when attempting to run simulations as fast as possible.
     """
 
-    def start(self):
+    def start(self, is_main):
         pass
 
     def reset_display(self, game):

@@ -2,6 +2,8 @@ from math import log, sqrt
 from random import choice
 from time import time
 
+from agents.mcts_display import MCTSDisplay
+
 from willsmith.agent import Agent
 
 
@@ -25,11 +27,19 @@ class MCTSAgent(Agent):
     perspective of the agent they represent.
     """
 
+    DISPLAY = MCTSDisplay
+
     def __init__(self, agent_id):
+        """
+        Run the Agent initializer and start the gametree.
+
+        Also initialize debug attributes for use in logging.
+        """
         super().__init__(agent_id)
         self.root = self.Node(None, None)
-        self.last_playout_total = 0
-        self.last_action_node = None
+
+        self.playout_total = 0
+        self.action_node = None
 
     def search(self, state, allotted_time):
         """
@@ -57,8 +67,8 @@ class MCTSAgent(Agent):
 
         max_action = self.root.max_trials()
         # debug info
-        self.last_playout_total = playouts
-        self.last_action_node = self.root.get_child(max_action)
+        self.playout_total = playouts
+        self.action_node = self.root.get_child(max_action)
 
         return max_action
 
@@ -142,7 +152,7 @@ class MCTSAgent(Agent):
             node = node.parent
 
     def __str__(self):
-        return "last playouts {} | last action node [{}] | tree max depth {}".format(self.last_playout_total, self.last_action_node, self.root.depth())
+        return "playouts {} | node {} | tree max depth {}".format(self.playout_total, self.action_node, self.root.depth())
 
 
     class Node:
@@ -213,7 +223,7 @@ class MCTSAgent(Agent):
 
         def depth(self):
             depth = 0
-            if self.children:
+            if self.has_children():
                 depth = 1 + max([child.depth() for child in self.children.values()])
             return depth
 

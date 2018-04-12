@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from tkinter import Tk
+from tkinter import Tk, Toplevel
 
 from willsmith.display_controller import DisplayController
 
@@ -29,38 +29,41 @@ class GUIDisplayController(DisplayController):
         pass
 
     @abstractmethod
-    def _update_display(self, game, action):
+    def _update_display(self, state, action):
         pass
 
     @abstractmethod
-    def _reset_display(self, game):
+    def _reset_display(self, state):
         pass
 
-    def start(self):
-        self.root = self._initialize_root()
+    def start(self, is_main):
+        self.root = self._initialize_root(is_main)
         self._initialize_widgets()
         self._place_widgets()
 
-    def _initialize_root(self):
+    def _initialize_root(self, is_main):
         """
         Create the window root and update its configuration.
         """
-        root = Tk()
+        if is_main:
+            root = Tk()
+        else:
+            root = Toplevel()
         root.title(self.WINDOW_TITLE)
         return root
 
-    def update_display(self, game, action):
+    def update_display(self, state, action):
         """
         Ensure _update_window method is called when the display is updated.
         """
-        self._update_display(game, action)
+        self._update_display(state, action)
         self._update_window()
 
-    def reset_display(self, game):
+    def reset_display(self, state):
         """
         Ensure _update_window method is called when the display is updated.
         """
-        self._reset_display(game)
+        self._reset_display(state)
         self._update_window()
 
     def _update_window(self):

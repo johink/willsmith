@@ -8,7 +8,7 @@ class Simulator():
     Game simulator that manages running a game and agent players.
     """
 
-    def __init__(self, game, agent_list, time_allowed):
+    def __init__(self, game, agent_list, time_allowed, gui_display):
         """
         Store the game and agent classes for later instantiation when a 
         simulation is started.  
@@ -19,7 +19,13 @@ class Simulator():
         self.game = game
         self.agents = agent_list
         self.time_allowed = time_allowed
-        self.display_controller = game.DISPLAY()
+
+        self.game_display_controller = game.DISPLAY()
+        self.agent_display_controllers = dict()
+        if gui_display:
+            for i, agent in enumerate(self.agents):
+                if agent.DISPLAY is not None:
+                    self.agent_display_controllers[i] = agent.DISPLAY()
 
         self.logger = getLogger(__name__)
 
@@ -35,13 +41,19 @@ class Simulator():
         self.current_agents = [agent(i) for i, agent in enumerate(self.agents)]
 
         self._add_prompt_to_human_agents(self.current_game.ACTION.prompt_for_action)
-        self.display_controller.reset_display(self.current_game)
+
+        self.game_display_controller.reset_display(self.current_game)
+        for agent_id, display in self.agent_display_controllers.items():
+            display.reset_display(self.current_agents[agent_id])
         
     def run_games(self, num_games):
         """
         Run num_games number of game simulations.
         """
-        self.display_controller.start()
+        self.game_display_controller.start(is_main = True)
+        for display in self.agent_display_controllers.values():
+            display.start(is_main = False)
+
         for i in range(num_games):
             self.logger.info("Game {}/{}".format(i + 1, num_games))
             self.initialize_match()
@@ -58,17 +70,14 @@ class Simulator():
         state of the game is reached.
         """
         for agent in self.current_agents:
-            self.logger.debug("Agent {} start {}".format(
-                                                        agent.agent_id, agent))
+            self.logger.debug("Agent {} start {}".format(agent.agent_id, agent))
         while not self.current_game.is_terminal():
             current_agent = self.current_agents[self.current_game.current_agent_id]
             action = current_agent.search(self.current_game.copy(), self.time_allowed)
-            self.logger.debug("Agent {} {}".format(
-                                        current_agent.agent_id, current_agent))
+            self.logger.debug("Agent {} {}".format(current_agent.agent_id, current_agent))
             self._advance_by_action(action)
 
-        self.logger.info("Winning agent is {}".format(
-                                        self.current_game.get_winning_id()))
+        self.logger.info("Winning agent is {}".format(self.current_game.get_winning_id()))
         self.logger.debug("Final state\n{}".format(self.current_game))
 
     def _advance_by_action(self, action):
@@ -78,13 +87,20 @@ class Simulator():
         The update only applies if the action is deemed legal by the game.  
         Illegal actions still progress the game by a turn, skipping the agent 
         who provided the action.
+
+        An agent display is only updated after it takes actions.
         """
-        self.logger.debug("Agent {} action {}".format(
-                            self.current_game.current_agent_id, action))
+        self.logger.debug("Agent {} action {}".format(self.current_game.current_agent_id, action))
+        action_agent_id = self.current_game.current_agent_id
+
         if self.current_game.take_action_if_legal(action):
             for agent in self.current_agents:
                 agent.take_action(action)
-            self.display_controller.update_display(self.current_game, action)
+
+            self.game_display_controller.update_display(self.current_game, action)
+            for agent_id, display in self.agent_display_controllers.items():
+                if agent_id == action_agent_id:
+                    display.update_display(self.current_agents[agent_id], action)
     
     def _add_prompt_to_human_agents(self, action_prompt):
         """

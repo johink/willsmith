@@ -32,7 +32,7 @@ class HavannahAction(Action):
         return HavannahAction(coord, color)
 
     def __str__(self):
-        return "{} : {}".format(self.coord, self.color)
+        return "{} -> {}".format(self.coord, self.color)
 
     def __repr__(self):
         return self.__str__()

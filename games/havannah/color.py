@@ -11,6 +11,9 @@ class Color(Enum):
     RED = 3
     
     def __str__(self):
+        return self.name
+
+    def short_str(self):
         """
         Returns strings of length two for console printing format of the 
         Havannah board.

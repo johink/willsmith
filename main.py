@@ -105,13 +105,20 @@ def lookup_game(game_str):
     getLogger().info("Game is {}".format(game.__name__))
     return game
 
-def adjust_display(game, no_display, console):
-    if no_display:
-        getLogger().debug("Non-display option chosen")
-        game.DISPLAY = NoDisplay
-    elif console:
-        getLogger().debug("Console display chosen")
-        game.DISPLAY = ConsoleDisplay
+def adjust_display(game, agents, no_display, console):
+    gui = True
+    if no_display or console:
+        for agent in agents:
+            agent.DISPLAY = None
+        gui = False
+
+        if no_display:
+            getLogger().debug("Non-display option chosen")
+            game.DISPLAY = NoDisplay
+        else:
+            getLogger().debug("Console display option chosen")
+            game.DISPLAY = ConsoleDisplay
+    return gui
 
 if __name__ == "__main__":
     parser = create_parser()
@@ -122,12 +129,12 @@ if __name__ == "__main__":
     game = lookup_game(args.game_choice)
     agents = [lookup_agent(i, astr) for i, astr in enumerate(args.agents)]
         
-    adjust_display(game, args.no_display, args.console_display)
+    gui = adjust_display(game, agents, args.no_display, args.console_display)
 
     time = args.time_allotted
     logger.debug("Agents have {} seconds per turn".format(time))
     num_games = args.num_games
     logger.debug("{} game(s) will be played".format(num_games))
 
-    simulator = Simulator(game, agents, time)
+    simulator = Simulator(game, agents, time, gui)
     simulator.run_games(num_games)

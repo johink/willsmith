@@ -10,6 +10,8 @@ class Agent(ABC):
     on a given action taken in the game.
     """
 
+    DISPLAY = None
+
     def __init__(self, agent_id):
         self.agent_id = agent_id
 
