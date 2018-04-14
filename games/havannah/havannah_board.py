@@ -1,4 +1,6 @@
 from copy import deepcopy
+from collections import defaultdict
+from itertools import combinations
 
 from games.havannah.color import Color
 from games.havannah.hex_node import HexNode
@@ -16,13 +18,13 @@ class HavannahBoard:
         Bridge - connect any two of the corner hexes
         Fork -  connect any three board edges, excluding corners
 
-    The game grid is encoded as a lookup table from coordinates to HexNode 
-    instances.  These nodes store their current color, a neighbor(edge) list, 
-    and other information relevant to win checking.  
+    The game grid is encoded as a lookup table from coordinates to HexNode
+    instances.  These nodes store their current color, a neighbor(edge) list,
+    and other information relevant to win checking.
 
-    As well as implementing a simple symmetric directed graph, the board also 
-    implements a union-find data structure.  As actions are taken on the 
-    board, a hex that is colored is unioned with its same color neighbors to 
+    As well as implementing a simple symmetric directed graph, the board also
+    implements a union-find data structure.  As actions are taken on the
+    board, a hex that is colored is unioned with its same color neighbors to
     create subsets that store progress towards a win condition.
 
     The coordinates start at (0,0,0) in the center of the board, and each
@@ -51,9 +53,23 @@ class HavannahBoard:
     def take_action(self, action):
         """
         Color the hex at the given coordinate.
+
+        Also, before unioning the newly colored coordinate with all of its 
+        same-color neighbors, it is checked to see if it meets the conditions 
+        for a potential ring.  If so, after the union we check for this 
+        particular win condition.
+
+        This check is done here because the condition that leads to the 
+        fastest check_ring implementation is easiest to detect AFTER an 
+        action is taking and BEFORE that node is unioned with others.
         """
         self.grid[action.coord].color = action.color
+
+        subset_dict = self._detect_potential_ring(action.coord, action.color)
         self._union_with_neighbors(action.coord, action.color)
+        
+        if subset_dict:
+            self._check_ring(action.coord, action.color, subset_dict)
 
     def _union_with_neighbors(self, coord, color):
         """
@@ -67,14 +83,14 @@ class HavannahBoard:
         """
         Merge the smaller subset into the larger subset.
 
-        This updates the nodes referenced by both coordinates to have the 
+        This updates the nodes referenced by both coordinates to have the
         same representative element.
 
-        The win condition information in the new root is updated to include 
+        The win condition information in the new root is updated to include
         the progress made by both sets.
 
-        * Non-root nodes are not kept up-to-date with the win progress, they 
-        * are guaranteed to be out of date once they are unioned with any 
+        * Non-root nodes are not kept up-to-date with the win progress, they
+        * are guaranteed to be out of date once they are unioned with any
         * other subset that has progress towards a win.
         *
         * Only reference root nodes when checking win progress.
@@ -97,8 +113,8 @@ class HavannahBoard:
         Traverse from the node referenced by the coordinate to its root node.
         Then return the coordinate of the root node.
 
-        During the traversal, parent coordinates are updated with coords 
-        from further up in the tree.  This has a flattening effect to keep 
+        During the traversal, parent coordinates are updated with coords
+        from further up in the tree.  This has a flattening effect to keep
         the number of traversal steps low.
         """
         node = self.grid[coord]
@@ -116,63 +132,92 @@ class HavannahBoard:
         """
         Check if the last action taken triggered a win.
 
-        This check relies on the union-find nodes keeping track of their 
-        progress towards a win condition for bridge and fork.  Checking for a 
-        ring is still a graph traversal.
+        This check relies on the union-find nodes keeping track of their
+        progress towards a win condition for bridge and fork.
         """
         root = self.grid[self._find(action.coord)]
-        if (root.num_corners >= 2                                   # bridge
-                or len(root.edge_labels) >= 3                       # fork
-                or self._check_ring(action.coord, action.color)):   # ring
+        if (root.num_corners >= 2 or len(root.edge_labels) >= 3):
             self.winner = action.color
 
-    def _check_ring(self, coord, color):
-        """
-        Check if coord references a ring win.
+    def _detect_potential_ring(self, coord, color):
+        neighbors = [(x, self._find(x)) for x in self.grid[coord].neighbors
+                        if self.grid[x].color == color]
+        
+        root_subsets = defaultdict(list)
+        for coordinate, set_id in neighbors:
+            root_subsets[set_id].append(coordinate)
 
-        Relies on the _recursive_ring method called on each of the coord and 
-        neighbor pairs.
+        filtered_subsets = dict()
+        for key in root_subsets.keys():
+            if (len(root_subsets[key]) > 2 
+                or (len(root_subsets[key]) == 2 
+                    and root_subsets[key][0] not in self.grid[root_subsets[key][1]].neighbors)):
+                filtered_subsets[key] = root_subsets[key]
+        return filtered_subsets
+
+    def _check_ring(self, coord, color, subset_dict):
         """
+        Check if the ring win condition is satisfied.
+        
+        First check for the easier to detect ring condition when there is not 
+        an in-set element adjacent to the newest node.
+
+        Otherwise, check for the case where the adjacent node is also in-set.
+        """
+        if (self._check_ring_not_filled(coord, subset_dict) 
+                or self._check_ring_filled(coord, color)):
+            self.winner = color
+
+    def _check_ring_not_filled(self, coord, subset_dict):
+        """
+        Check if the two in-set neighbors are in the same set and either:
+            - they are not adjacent
+            - not connected by another in-set neighbor
+        """
+        ring = False
+
+        i = 0
+        pairs = list(subset_dict.items())
+        while not ring and i < len(pairs):
+            group_id, coords = pairs[i]
+            all_neighbors = set()
+            for c in coords:
+                all_neighbors.update(self.grid[c].neighbors)
+            j = 0
+            while not ring and j < len(coords):
+                if c not in all_neighbors:
+                    ring = True
+                j += 1
+            i += 1
+        return ring
+
+    def _check_ring_filled(self, coord, color):
+        """
+        Check if coloring the node at coord creates a ring in the case where 
+        the ring is filled by its own color.
+
+        This check is performed by finding the node inside the ring and then 
+        checking if every one of its neighbors is in-set.
+        """
+        ring = False
         neighbors = [x for x in self.grid[coord].neighbors
                         if self.grid[x].color == color]
-        win = False
-        for neighbor in neighbors:
-            win = self._recursive_ring(color, coord, neighbor, set())
-            if win:
-                break
-        return win
+        i = 0
+        pairs = list(combinations(neighbors, 2))
+        while not ring and i < len(pairs):
+            n1, n2 = pairs[i]
+            in_common = set(self.grid[n1].neighbors) & set(self.grid[n2].neighbors) - {coord}
 
-    def _recursive_ring(self, color, prior_coord, current_coord, visited_set):
-        """
-        Traverse the grid checking for cycles that surround another node.
-
-        The traversal only progresses to neighbors of the current coordinate 
-        that are NOT adjacent to the previous coordinate.  
+            if in_common:       # should only have one element
+                ic_coord = in_common.pop()
+                if ic_coord in self.grid[coord].neighbors:
+                    coord_root = self._find(coord)
+                    ic_neighbors = self.grid[ic_coord].neighbors
+                    if len(ic_neighbors) == 6 and all([self._find(x) == coord_root for x in ic_neighbors]):
+                        ring = True
+            i += 1
+        return ring
         
-        This condition ensures that a previously visited coordinate(visited) 
-        cannot be reached without traversing around one or more central hexes.
-        """
-        if current_coord in visited_set:    # completed a cycle
-            win = True
-        else:
-            previous_neighbors = set(self.grid[prior_coord].neighbors)
-            previous_neighbors.add(prior_coord)
-            valid_neighbors = {x for x in self.grid[current_coord].neighbors
-                                if self.grid[x].color == color
-                                    and x not in previous_neighbors}
-            if not valid_neighbors:
-                win = False
-            else:
-                # the visited set adds and removes current_coord in this 
-                # block to prevent the need to generate copies of the set
-                visited_set.add(current_coord)
-                for neighbor in valid_neighbors:
-                    win = self._recursive_ring(color, current_coord, neighbor, visited_set)
-                    if win:
-                        break
-                visited_set.remove(current_coord)
-
-        return win
 
     def coord_to_color(self, col, slant):
         """

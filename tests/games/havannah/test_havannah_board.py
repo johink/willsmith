@@ -48,9 +48,43 @@ class TestHavannahBoard(TestCase):
         self.board.take_action(action)
         self.assertNotEqual(self.board.grid, other_board.grid)
 
-    def test_check_ring_error_example(self):
+    def test_check_ring_error_example_1(self):
         for coord in [(1, 0, -1), (0, 1, -1), (-1, 1, 0), (-1, 0, 1),
                         (0, -1, 1), (0, 0, 0)]:
+            # take action checks for rings
             self.board.take_action(HavannahAction(coord, Color.BLUE))
-        self.board._check_ring((0, 0, 0), Color.BLUE)
         self.assertNotEqual(self.board.winner, Color.BLUE)
+
+    def test_check_ring_error_example_2(self):
+        for coord in [(-1, -2, 3), (-3, 0, 3), (-1, -1, 2), (-2, -1, 3)]:
+            # take action checks for rings
+            self.board.take_action(HavannahAction(coord, Color.BLUE))
+        self.assertNotEqual(self.board.winner, Color.BLUE)
+
+    def test_check_ring_error_example_3(self):
+        for coord in [(0, -1, 1), (-1, 1, 0), (-2, 1, 1), (-2, 0, 2), 
+                        (-1, 0, 1)]:
+            # take action checks for rings
+            self.board.take_action(HavannahAction(coord, Color.BLUE))
+        self.assertNotEqual(self.board.winner, Color.BLUE)
+
+    def test_check_ring_simple_ring(self):
+        for coord in [(1, 0, -1), (0, 1, -1), (-1, 1, 0), (-1, 0, 1),
+                        (0, -1, 1), (1, -1, 0)]:
+            # take action checks for rings
+            self.board.take_action(HavannahAction(coord, Color.BLUE))
+        self.assertEqual(self.board.winner, Color.BLUE)
+
+    def test_check_ring_filled_ring(self):
+        for coord in [(1, 0, -1), (0, 1, -1), (-1, 1, 0), (-1, 0, 1),
+                        (0, -1, 1), (0, 0, 0), (1, -1, 0)]:
+            # take action checks for rings
+            self.board.take_action(HavannahAction(coord, Color.BLUE))
+        self.assertEqual(self.board.winner, Color.BLUE)
+
+    def test_check_ring_extended_ring(self):
+        for coord in [(1, 0, -1), (0, 1, -1), (-1, 1, 0), (-1, 0, 1),
+                        (0, -1, 1), (1, -2, 1), (2, -1, -1), (2, -2, 0)]:
+            # take action checks for rings
+            self.board.take_action(HavannahAction(coord, Color.BLUE))
+        self.assertEqual(self.board.winner, Color.BLUE)
