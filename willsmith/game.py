@@ -49,14 +49,19 @@ class Game(ABC):
         if self.NUM_PLAYERS is None:
             raise RuntimeError("Game must set expected number of players.")
 
-    @abstractmethod
     def get_legal_actions(self):
+        results = []
+        if not self.is_terminal():
+            results = self._get_legal_actions()
+        return results
+
+    @abstractmethod
+    def _get_legal_actions(self):
         """
-        Return a list of the available actions for the current agent in the 
+        Return a list of the available actions for the current agent in the
         current state of the game.
         """
         pass
-
     @abstractmethod
     def is_legal_action(self, action):
         """

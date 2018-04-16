@@ -11,19 +11,19 @@ class MCTSAgent(Agent):
     """
     Planning agent that makes decisions based on Monte Carlo Tree Search.
 
-    Computes as many runs as possible in the time alloted, where a run 
+    Computes as many runs as possible in the time alloted, where a run
     consists of the following stages:
 
-        Selection       -   Start at root, use UCB to choose actions until 
-                                action does not produce child  
-        Expansion       -   Create new node  
-        Simulation      -   Play out game until reaching a terminal state  
-        Backpropagation -   Update win/trial counters for new node and all parents  
+        Selection       -   Start at root, use UCT to choose actions until
+                                action does not produce child
+        Expansion       -   Create new node
+        Simulation      -   Play out game until reaching a terminal state
+        Backpropagation -   Update win/trial counters for new node and all parents
 
     Then, it chooses the action with the most trials and returns that.
 
-    The agents internal game state is stored as a tree of nodes, where the 
-    edges are actions and the nodes are the wins/total trials from the 
+    The agents internal game state is stored as a tree of nodes, where the
+    edges are actions and the nodes are the wins/total trials from the
     perspective of the agent they represent.
     """
 
@@ -47,7 +47,7 @@ class MCTSAgent(Agent):
 
         The individual steps are described in the class docstrings
 
-        Searches the state space for the best available action, using the above 
+        Searches the state space for the best available action, using the above
         steps.
         """
         playouts = 0
@@ -55,14 +55,10 @@ class MCTSAgent(Agent):
         start_time = time()
         while time() - start_time < allotted_time:
             current_state = state.copy()
-            current_state, current_node, game_over = self._selection(current_state)
-            if not game_over:
-                new_state, new_node = self._expansion(current_state, current_node)
-                winning_id = self._simulation(new_state)
-                self._backpropagation(winning_id, new_node)
-            else:
-                winning_id = self._simulation(current_state)
-                self._backpropagation(winning_id, current_node)
+            selected_node = self._selection(current_state)
+            new_node = self._expansion(current_state, selected_node)
+            winning_id = self._simulation(current_state)
+            self._backpropagation(winning_id, new_node)
             playouts += 1
 
         max_action = self.root.max_trials()
@@ -74,11 +70,11 @@ class MCTSAgent(Agent):
 
     def take_action(self, action):
         """
-        Move the tree root to the child node of the current root corresponding 
+        Move the tree root to the child node of the current root corresponding
         to the action.
 
-        If a node for that action has never been expanded, restart the tree 
-        from scratch.  This happens in cases where an adversary takes an 
+        If a node for that action has never been expanded, restart the tree
+        from scratch.  This happens in cases where an adversary takes an
         action that we have not yet expanded and explored.
         """
         try:
@@ -88,40 +84,39 @@ class MCTSAgent(Agent):
 
     def _selection(self, state):
         """
-        Progress through the tree of Nodes, starting at the root, until a 
-        leaf is found or there are unexplored actions at the level we are 
+        Progress through the tree of Nodes, starting at the root, until a
+        leaf is found or there are unexplored actions at the level we are
         exploring.
 
-        Uses the UCB algorithm to determine which nodes to progress to.
+        Uses the UCT algorithm to determine which nodes to progress to.
         """
         node = self.root
         unexplored_actions = len(state.get_legal_actions()) > len(node.children.keys())
-        terminal = state.is_terminal()
 
-        while not unexplored_actions and not terminal:
-            action = node.UCB(state, self.root.trials)  # root.trials == total number of trials
-
-            state.take_action_if_legal(action)
+        while not unexplored_actions and node.has_children():
+            action = node.UCT(state)
             node = node.get_child(action)
 
+            state.take_action_if_legal(action)
             unexplored_actions = len(state.get_legal_actions()) > len(node.children.keys())
-            terminal = state.is_terminal()
 
-        return state, node, terminal
+        return node
 
     def _expansion(self, state, node):
         """
         Handle the creation of a new leaf in the Node tree.
 
-        Makes a random choice of the unexplored actions, adds that Node to 
+        Makes a random choice of the unexplored actions, adds that Node to
         the tree, and progress the current game state by that action.
         """
-        action = choice([action for action in state.get_legal_actions() if action not in node.children])
-        new_child = self.Node(node, state.current_agent_id)
-        node.add_child(action, new_child)
-        state.take_action_if_legal(action)
+        new_child = node
+        if not state.is_terminal():
+            action = choice([action for action in state.get_legal_actions() if action not in node.children])
+            new_child = self.Node(node, state.current_agent_id)
+            node.add_child(action, new_child)
+            state.take_action_if_legal(action)
 
-        return state, new_child
+        return new_child
 
     def _simulation(self, state):
         """
@@ -136,8 +131,8 @@ class MCTSAgent(Agent):
         """
         Make random choices for actions regardless of the state.
 
-        This strategy is called a "light playout".  It has little 
-        computational overhead, but also does not take advantage of any 
+        This strategy is called a "light playout".  It has little
+        computational overhead, but also does not take advantage of any
         domain knowledge about the game.
         """
         action = state.generate_random_action()
@@ -160,8 +155,8 @@ class MCTSAgent(Agent):
         Used internally by the agent to store the results of simulations.
 
         Each node keeps track of:
-        - its place in the tree, 
-        - the agent id of the agent who is choosing the next action, 
+        - its place in the tree,
+        - the agent id of the agent who is choosing the next action,
         - and the win% of that agent from this point in the game tree.
         """
 
@@ -192,7 +187,7 @@ class MCTSAgent(Agent):
             value_func = lambda x: self.get_child(x).trials
             return max(self.children, key=value_func)
 
-        def UCB(self, state, total_trials):
+        def UCT(self, state):
             """
             Choose an action based on an exploitation vs exploration function
             that expresses node value as:
@@ -201,14 +196,15 @@ class MCTSAgent(Agent):
             num wins at node / num trials node
             +
             (exploration)
-            exploration parameter * sqrt(ln(total trials) / num trials at node)
+            exploration parameter * sqrt(ln(num trials at node) / num trials at child)
             """
             valid_actions = state.get_legal_actions()
-            exploration_estimate = self.EXPLORATION_PARAM * sqrt(log(total_trials) / self.trials)
 
             results = {}
             for action in valid_actions:
-                value_estimate = self.get_child(action).value_estimate()
+                child_node = self.get_child(action)
+                value_estimate = child_node.value_estimate()
+                exploration_estimate = self.EXPLORATION_PARAM * sqrt(log(self.trials) / child_node.trials)
                 results[action] = value_estimate + exploration_estimate
             return max(results.keys(), key=results.get)
 

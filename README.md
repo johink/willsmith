@@ -52,6 +52,7 @@ Tested on Python version 3.6, but should work on any recent version of
 Python 3.
 
 Run `python main.py -h` to see the available options for games and agents.  
+
 An example game of Nested Tic-Tac-Toe can be shown by running 
 `python main.py ttt`, which will start the game with a MCTSAgent against a 
 RandomAgent with a default time-allowed of 0.5 seconds.

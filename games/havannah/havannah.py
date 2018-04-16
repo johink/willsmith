@@ -49,7 +49,7 @@ class Havannah(Game):
         return {coord : self.ACTION(coord, cur_color) 
                     for coord in self.board.grid.keys()}
     
-    def get_legal_actions(self):
+    def _get_legal_actions(self):
         self._update_legal_actions()
         return list(self.legal_actions.values())
 

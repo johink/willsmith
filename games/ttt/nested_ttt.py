@@ -59,7 +59,7 @@ class NestedTTT(Game):
                         for ir in range(TTTBoard.BOARD_SIZE)
                         for ic in range(TTTBoard.BOARD_SIZE)}
 
-    def get_legal_actions(self):
+    def _get_legal_actions(self):
         self._update_legal_actions()
         return list(self.legal_actions.values())
 
