@@ -22,6 +22,8 @@ from willsmith.simple_displays import ConsoleDisplay, NoDisplay
 from willsmith.simulator import Simulator
 
 
+__version__ = "0.5.0"
+
 HAVANNAH_LABELS = ["Havannah", "hav"]
 NESTEDTTT_LABELS = ["NestedTTT", "ttt"]
 AGENT_LABELS = ["mcts", "rand", "human"]
@@ -84,6 +86,8 @@ def create_parser():
                         help = "Do not display the game on each turn.")
     parser.add_argument("-t", "--time_allotted", type = float, default = 0.5,
                         help = "Time allotted for agent moves")
+    parser.add_argument("-v", "--version", action = "version", 
+                        version = "willsmith " + __version__)
     return parser
 
 def lookup_agent(num, agent_str):
@@ -120,7 +124,7 @@ def adjust_display(game, agents, no_display, console):
             game.DISPLAY = ConsoleDisplay
     return gui
 
-if __name__ == "__main__":
+def main():
     parser = create_parser()
     args = parser.parse_args()
 
@@ -138,3 +142,6 @@ if __name__ == "__main__":
 
     simulator = Simulator(game, agents, time, gui)
     simulator.run_games(num_games)
+
+if __name__ == "__main__":
+    main()
