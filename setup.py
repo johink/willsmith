@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from setuptools import setup, find_packages
 
 from main import __version__
@@ -26,6 +24,8 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Programming Language :: Python :: 3"
+        "Programming Language :: Python :: 3.6"
         "Programming Language :: Python :: 3 :: Only"
         ],
     keywords = "AI artificial intelligence agents",

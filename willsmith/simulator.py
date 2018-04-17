@@ -115,5 +115,5 @@ class Simulator():
         actions for the given game.
         """
         for agent in self.agents:
-            if agent == HumanAgent:
+            if agent is HumanAgent:
                 agent.add_input_info(action.INPUT_PROMPT, action.parse_action)
