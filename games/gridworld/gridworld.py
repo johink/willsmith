@@ -84,7 +84,7 @@ class Gridworld(Game):
 
     def __eq__(self, other):
         equal = False
-        if isinstance(self, other__class__):
+        if isinstance(self, other.__class__):
             equal = (self.grid == other.grid
                         and self.transition_func == other.transition_func
                         and self.player_pos == other.player_pos
