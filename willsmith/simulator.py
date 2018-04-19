@@ -3,7 +3,7 @@ from logging import getLogger
 from agents.human_agent import HumanAgent
 
 
-class Simulator():
+class Simulator:
     """
     Game simulator that manages running a game and agent players.
     """

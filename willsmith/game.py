@@ -104,6 +104,8 @@ class Game(ABC):
         legal = self.is_legal_action(action)
         if legal:
             self._take_action(action)
+        else:
+            raise RuntimeError("Received illegal action: {}".format(action))
         self._increment_current_agent_id()
         return legal
 

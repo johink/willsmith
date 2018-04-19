@@ -10,10 +10,6 @@ class TTTAction(Action):
     Outer position - selects a board
     Inner position - selects a position on that board
     Move - X or O, corresponding to player's label
-
-    The prompt_for_action method is overridden from the Action parent 
-    class.  This functionality is used by the HumanAgent to provide 
-    game-specific prompts on its turn.
     """
 
     INPUT_PROMPT = "Choose board, board position, and move(r,c;r,c;Move):  "

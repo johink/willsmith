@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 
 from games.ttt.ttt_action import TTTAction
 from games.ttt.ttt_board import TTTBoard
