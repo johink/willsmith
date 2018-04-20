@@ -173,10 +173,7 @@ class NestedTTT(Game):
     def __deepcopy__(self, memo):
         new = NestedTTT.__new__(NestedTTT)
         memo[id(self)] = new
-
-        # should rely on inheritance for these attributes
-        new.num_agents = self.num_agents
-        new.current_agent_id = self.current_agent_id
+        self.deepcopy_game_attrs(new)
 
         new.outer_board = deepcopy(self.outer_board, memo)
         new.inner_boards = [deepcopy(board, memo) for board in self.inner_boards]

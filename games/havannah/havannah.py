@@ -118,10 +118,7 @@ class Havannah(Game):
     def __deepcopy__(self, memo):
         new = Havannah.__new__(Havannah)
         memo[id(self)] = new
-
-        # should rely on inheritance for these attributes
-        new.num_agents = self.num_agents
-        new.current_agent_id = self.current_agent_id
+        self.deepcopy_game_attrs(new)
 
         new.board = deepcopy(self.board, memo)
         new.legal_actions = {k : deepcopy(v, memo) 

@@ -139,3 +139,8 @@ class Game(ABC):
 
     def __eq__(self, other):
         return self.num_agents == other.num_agents and self.current_agent_id == other.current_agent_id
+
+    def deepcopy_game_attrs(self, new):
+        new.num_agents = self.num_agents
+        new.current_agent_id = self.current_agent_id
+        return new

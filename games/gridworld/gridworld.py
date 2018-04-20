@@ -99,10 +99,7 @@ class Gridworld(Game):
     def __deepcopy__(self, memo):
         new = Gridworld.__new__(Gridworld)
         memo[id(self)] = new
-
-        # should rely on inheritance for these attributes
-        new.num_agents = self.num_agents
-        new.current_agent_id = self.current_agent_id
+        self.deepcopy_game_attrs(new)
 
         new.grid = deepcopy(self.grid, memo)
         new.transition_func = self.transition_func
