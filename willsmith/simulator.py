@@ -91,23 +91,20 @@ class Simulator:
         """
         Update the game, agents, and display with the given action.
 
-        The update only applies if the action is deemed legal by the game.  
-        Illegal actions still progress the game by a turn, skipping the agent 
-        who provided the action.
-
-        An agent display is only updated after it takes actions.
+        Only the agent display of the agent that chose the action is updated.
         """
         self.logger.debug("Agent {} action {}".format(self.current_game.current_agent_id, action))
         action_agent_id = self.current_game.current_agent_id
 
-        if self.current_game.take_action_if_legal(action):
-            self.game_display_controller.update_display(self.current_game, action)
-            for agent_id, display in self.agent_display_controllers.items():
-                if agent_id == action_agent_id:
-                    display.update_display(self.current_agents[agent_id], action)
+        self.current_game.take_action(action)
 
-            for agent in self.current_agents:
-                agent.take_action(action)
+        self.game_display_controller.update_display(self.current_game, action)
+        for agent_id, display in self.agent_display_controllers.items():
+            if agent_id == action_agent_id:
+                display.update_display(self.current_agents[agent_id], action)
+
+        for agent in self.current_agents:
+            agent.take_action(action)
     
     def _add_prompt_to_human_agents(self, action):
         """

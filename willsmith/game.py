@@ -97,19 +97,16 @@ class Game(ABC):
         """
         pass
 
-    def take_action_if_legal(self, action):
+    def take_action(self, action):
         """
-        Take the action if it is legal, otherwise skip that agent's turn.
-
-        Returns a boolean to indicate if the action was taken.
+        Ensure that only legal actions are applied to the game, and update 
+        the current_agent_id to the next agent.
         """
-        legal = self.is_legal_action(action)
-        if legal:
-            self._take_action(action)
-        else:
+        if not self.is_legal_action(action):
             raise RuntimeError("Received illegal action: {}".format(action))
+
+        self._take_action(action)
         self._increment_current_agent_id()
-        return legal
 
     def generate_random_action(self):
         """

@@ -14,7 +14,7 @@ class TestHavannah(GameTestCase):
     def test_get_legal_actions_color_stays_in_sync(self):
         first_action = self.game.get_legal_actions()[0]
         self.assertEqual(first_action.color, Color.BLUE)
-        self.game.take_action_if_legal(first_action)
+        self.game.take_action(first_action)
         second_action = self.game.get_legal_actions()[0]
         self.assertEqual(second_action.color, Color.RED)
 
