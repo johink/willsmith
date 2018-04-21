@@ -9,15 +9,15 @@ class Action(ABC):
     tuples and the copious amounts of packing and unpacking required by 
     them.
 
-    Also has the method prompt_for_action needed by HumanAgent to be able to 
-    prompt a user for a game action.
+    The parse_action method is used to convert strings to the action subclass, 
+    and the INPUT_PROMPT attribute is used to convey the format to a user.
     """
 
     INPUT_PROMPT = None
 
     def __init__(self):
         if self.INPUT_PROMPT is None:
-            raise RuntimeError("INPUT_PROMPT attribute must be defined by actions.")
+            raise RuntimeError("Actions must set an input prompt.")
 
     @staticmethod
     @abstractmethod

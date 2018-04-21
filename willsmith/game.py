@@ -42,9 +42,11 @@ class Game(ABC):
         self.num_agents = self.NUM_PLAYERS
         self.current_agent_id = 0
 
-        if self.ACTION is None:
+        if (self.ACTION is None 
+                or not issubclass(self.ACTION, Action)):
             raise RuntimeError("Game must set its own action, which must subclass Action.")
-        if self.DISPLAY is None:
+        if (self.DISPLAY is None 
+                or not issubclass(self.DISPLAY, DisplayController)):
             raise RuntimeError("Game must set its display, which must subclass DisplayController.")
         if self.NUM_PLAYERS is None:
             raise RuntimeError("Game must set expected number of players.")
