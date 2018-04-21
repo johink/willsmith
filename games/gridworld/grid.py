@@ -58,7 +58,7 @@ class Grid(MutableMapping):
             return hash((self.location, self.terminal, self.reward))
 
         def __deepcopy__(self, memo):
-            new = GridworldSquare.__new__(GridworldSquare)
+            new = Grid.GridworldSquare.__new__(Grid.GridworldSquare)
             memo[id(self)] = new
 
             new.location = self.location
