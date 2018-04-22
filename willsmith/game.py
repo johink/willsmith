@@ -52,10 +52,25 @@ class Game(ABC):
             raise RuntimeError("Game must set expected number of players.")
 
     def get_legal_actions(self):
+        """
+        Return a list of the legal actions remaining in the game, unless the 
+        game is in a terminal state.  Then return an empty list.
+        """
         results = []
         if not self.is_terminal():
             results = self._get_legal_actions()
         return results
+
+    def take_action(self, action):
+        """
+        Ensure that only legal actions are applied to the game, and update 
+        the current_agent_id to the next agent.
+        """
+        if not self.is_legal_action(action):
+            raise RuntimeError("Received illegal action: {}".format(action))
+
+        self._take_action(action)
+        self._increment_current_agent_id()
 
     @abstractmethod
     def _get_legal_actions(self):
@@ -97,17 +112,6 @@ class Game(ABC):
         """
         pass
 
-    def take_action(self, action):
-        """
-        Ensure that only legal actions are applied to the game, and update 
-        the current_agent_id to the next agent.
-        """
-        if not self.is_legal_action(action):
-            raise RuntimeError("Received illegal action: {}".format(action))
-
-        self._take_action(action)
-        self._increment_current_agent_id()
-
     def generate_random_action(self):
         """
         Make a random choice of the available legal actions.  
@@ -140,6 +144,10 @@ class Game(ABC):
         return self.num_agents == other.num_agents and self.current_agent_id == other.current_agent_id
 
     def deepcopy_game_attrs(self, new):
+        """
+        Used by subclasses to copy over the game attributes to a new deepcopy 
+        of the subclass.
+        """
         new.num_agents = self.num_agents
         new.current_agent_id = self.current_agent_id
         return new

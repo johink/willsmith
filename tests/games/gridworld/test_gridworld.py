@@ -11,8 +11,8 @@ class TestGridworld(GameTestCase):
     
     def setUp(self):
         super().setUp()
-        self.game = Gridworld(Grid(rewards_lookup, 0, walls, (4,3)), 
-                                deterministic_transition)
+        self.game = Gridworld(Grid(simple_terminals, 0, simple_walls, (4,3)), 
+                                deterministic_transition, simple_start)
         self.test_action = GridworldAction(GridworldDirection.UP)
 
     def test_game_equality(self):

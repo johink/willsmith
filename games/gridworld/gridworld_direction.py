@@ -15,7 +15,7 @@ class GridworldDirection(Enum):
         """
         Convert a direction to a 2D move vector.
         """
-        offset = (0,0)
+        offset = (0, 0)
         if action == GridworldDirection.UP:
             offset = (0, 1)
         elif action == GridworldDirection.RIGHT:

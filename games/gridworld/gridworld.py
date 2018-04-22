@@ -17,14 +17,14 @@ class Gridworld(Game):
     DISPLAY = ConsoleDisplay
     NUM_PLAYERS = 1
 
-    def __init__(self, grid, transition_func):
+    def __init__(self, grid, transition_func, agent_start_pos):
         """
         """
         super().__init__()
 
         self.grid = grid
         self.transition_func = transition_func
-        self.player_pos = (0,0)
+        self.player_pos = agent_start_pos
         self.terminal = False
         self.legal_actions = [GridworldAction(direction) for direction in GridworldDirection]
 
