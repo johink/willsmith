@@ -10,7 +10,7 @@ class HumanAgent(Agent):
     simulator, to provide the proper prompts and to construct the action.
     """
     
-    GUI_DISPLAY = HumanDisplay
+    GUI_DISPLAY = None #HumanDisplay is not yet ready
     INPUT_PROMPT = None
     INPUT_PARSER = None
 
