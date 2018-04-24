@@ -1,4 +1,4 @@
-from agents.human_display import HumanDisplay
+from agents.displays.human_display import HumanDisplay
 from willsmith.agent import Agent
 
 

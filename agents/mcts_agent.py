@@ -2,7 +2,7 @@ from math import log, sqrt
 from random import choice
 from time import time
 
-from agents.mcts_display import MCTSDisplay
+from agents.displays.mcts_display import MCTSDisplay
 
 from willsmith.agent import Agent
 
