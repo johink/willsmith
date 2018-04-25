@@ -12,8 +12,13 @@ class TestGridworld(GameTestCase):
     def setUp(self):
         super().setUp()
         self.game = Gridworld(Grid(simple_terminals, 0, simple_walls, (4,3)), 
-                                deterministic_transition, simple_start)
+                                deterministic_transition, (0, 0))
         self.test_action = GridworldAction(GridworldDirection.UP)
 
     def test_game_equality(self):
         self._test_game_equality()
+
+    def test_last_position_stays_in_sync(self):
+        self.assertIsNone(self.game.last_player_pos)
+        self.game.take_action(self.test_action)
+        self.assertEqual(self.game.last_player_pos, (0, 0))

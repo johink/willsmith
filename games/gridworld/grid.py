@@ -1,6 +1,8 @@
 from collections.abc import MutableMapping
 from copy import deepcopy
 
+from games.gridworld.gridworld_direction import GridworldDirection
+
 
 class Grid(MutableMapping):
     """
@@ -13,7 +15,7 @@ class Grid(MutableMapping):
                                     terminal_states.get((x, y), living_reward))
                 for x in range(self.size[0]) for y in range(self.size[1])
                     if (x, y) not in walls}
-        
+
     def __getitem__(self, key):
         return self._grid[key]
 
@@ -29,9 +31,20 @@ class Grid(MutableMapping):
     def __len__(self):
         return len(self._grid)
 
+    def __eq__(self, other):
+        equal = False
+        if isinstance(self, other.__class__):
+            equal = (self.size == other.size
+                        and self._grid == other._grid)
+        return equal
+
+    def __hash__(self):
+        return hash((self.size, frozenset(self._grid)))
+
     def __deepcopy__(self, memo):
         new = Grid.__new__(Grid)
         memo[id(self)] = new
+        new.size = self.size
         new._grid = {k : deepcopy(v, memo) for k, v in self._grid.items()}
         return new
     

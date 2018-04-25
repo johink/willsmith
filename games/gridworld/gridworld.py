@@ -24,10 +24,12 @@ class Gridworld(Game):
 
         self.grid = grid
         self.transition_func = transition_func
+
         self.player_pos = agent_start_pos
-        self.last_player_pos = self.player_pos
+        self.last_player_pos = None
         self.terminal = False
-        self.legal_actions = [GridworldAction(direction) for direction in GridworldDirection]
+
+        self.legal_actions = self._create_legal_actions_list()
 
     def _get_legal_actions(self):
         return self.legal_actions
@@ -35,31 +37,40 @@ class Gridworld(Game):
     def is_legal_action(self, action):
         return action in self.get_legal_actions()
 
+    def _create_legal_actions_list(self):
+        return [GridworldAction(direction) for direction in GridworldDirection]
+
     def _take_action(self, action):
         """
         """
         actions, weights = self.transition_func(action)
         # choices returns a list but we only ever return one result
-        resulting_action = choices(actions, weights = weights)[0]
-        return self._apply_action(resulting_action)
+        actual_action = choices(actions, weights = weights, k = 1)[0]
 
-    def _apply_action(self, action):
+        pos, reward, terminal = self._determine_result(actual_action)
+        self.last_player_pos = self.player_pos
+        self.player_pos = pos
+        self.terminal = terminal
+
+        return pos, reward, terminal
+
+    def _determine_result(self, action):
         """
         """
         x, y = self.player_pos
         dx, dy = GridworldDirection.get_offset(action.direction)
         next_coord = (x + dx, y + dy)
 
-        if self._valid_position(next_coord):
-            self.last_player_pos = self.player_pos
-            self.player_pos = next_coord
-            self.terminal = self.grid[next_coord].terminal
-
         result_pos = self.player_pos
-        return result_pos, self.grid[result_pos].reward
+        if self._valid_position(next_coord):
+            result_pos = next_coord
 
-    def _valid_position(self, next_coord):
-        return next_coord in self.grid
+        next_square = self.grid[result_pos]
+        reward, terminal = next_square.reward, next_square.terminal
+        return result_pos, reward, terminal
+
+    def _valid_position(self, coord):
+        return coord in self.grid
 
     def get_winning_id(self):
         raise NotImplementedError("You Win!")
@@ -90,6 +101,7 @@ class Gridworld(Game):
             equal = (self.grid == other.grid
                         and self.transition_func == other.transition_func
                         and self.player_pos == other.player_pos
+                        and self.last_player_pos == self.last_player_pos
                         and self.terminal == other.terminal
                         and self.legal_actions == other.legal_actions)
         return equal
@@ -105,6 +117,7 @@ class Gridworld(Game):
 
         new.grid = deepcopy(self.grid, memo)
         new.transition_func = self.transition_func
+        new.last_player_pos = self.last_player_pos
         new.player_pos = self.player_pos
         new.terminal = self.terminal
         new.legal_actions = [deepcopy(action, memo) 

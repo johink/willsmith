@@ -7,6 +7,12 @@ from willsmith.gui_display_controller import GUIDisplayController
 
 class GridworldDisplay(GUIDisplayController):
     """
+    The display controller for Gridworld.
+
+    Creates a Tkinter GUI with a Canvas that is uses to draw the grid squares.
+
+    Grid coordinates are converted to pixel coordinates taking into account 
+    the canvas swapping the y-axis from a standard coordinate system.
     """
 
     WINDOW_TITLE = "Gridworld"
@@ -33,7 +39,7 @@ class GridworldDisplay(GUIDisplayController):
         self.canvas["background"] = self.BACKGROUND_COLOR
 
     def _place_widgets(self):
-        self.canvas.pack(fill = BOTH, expand = 1)
+        self.canvas.pack(fill = BOTH, expand = True)
 
     def _update_display(self, state, action):
         """

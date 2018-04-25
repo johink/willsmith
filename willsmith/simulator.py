@@ -39,7 +39,6 @@ class Simulator:
             for i, agent in enumerate(self.agents):
                 if agent.GUI_DISPLAY is not None:
                     self.agent_display_controllers[i] = agent.GUI_DISPLAY()
-        
 
     def initialize_match(self):
         """
