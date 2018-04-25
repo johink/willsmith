@@ -24,6 +24,7 @@ def shaky_transition(action):
 #####################################
 #   Example Gridworlds
 #####################################
+
 simple_terminals = {(3, 1) : -10, (3, 2) : 10}
 simple_living_reward = -1
 simple_walls = {(1, 1)}
@@ -32,7 +33,8 @@ simple_start = (0, 0)
 
 simple_grid = Grid(simple_terminals, simple_living_reward, simple_walls, 
                     simple_grid_size)
-simple_gridworld = Gridworld(simple_grid, deterministic_transition, simple_start)
+simple_gridworld = Gridworld(simple_grid, deterministic_transition, 
+                                simple_start)
 
 classic_gridworld = Gridworld(simple_grid, shaky_transition, simple_start)
 

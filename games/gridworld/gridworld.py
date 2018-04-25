@@ -3,9 +3,9 @@ from random import choices
 
 from games.gridworld.gridworld_action import GridworldAction
 from games.gridworld.gridworld_direction import GridworldDirection
+from games.gridworld.gridworld_display import GridworldDisplay
 
 from willsmith.game import Game
-from willsmith.simple_displays import ConsoleDisplay
 
 
 class Gridworld(Game):
@@ -14,7 +14,7 @@ class Gridworld(Game):
     """
 
     ACTION = GridworldAction
-    DISPLAY = ConsoleDisplay
+    DISPLAY = GridworldDisplay
     NUM_PLAYERS = 1
 
     def __init__(self, grid, transition_func, agent_start_pos):
@@ -25,6 +25,7 @@ class Gridworld(Game):
         self.grid = grid
         self.transition_func = transition_func
         self.player_pos = agent_start_pos
+        self.last_player_pos = self.player_pos
         self.terminal = False
         self.legal_actions = [GridworldAction(direction) for direction in GridworldDirection]
 
@@ -32,7 +33,7 @@ class Gridworld(Game):
         return self.legal_actions
 
     def is_legal_action(self, action):
-        return action.direction in GridworldDirection
+        return action in self.get_legal_actions()
 
     def _take_action(self, action):
         """
@@ -50,6 +51,7 @@ class Gridworld(Game):
         next_coord = (x + dx, y + dy)
 
         if self._valid_position(next_coord):
+            self.last_player_pos = self.player_pos
             self.player_pos = next_coord
             self.terminal = self.grid[next_coord].terminal
 
