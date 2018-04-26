@@ -1,4 +1,5 @@
 from logging import getLogger
+from random import random
 
 from agents.human_agent import HumanAgent
 
@@ -31,20 +32,61 @@ class Simulator:
         self.time_allowed = time_allowed
         self.logger = getLogger(__name__)
 
-    def initialize_match(self):
+    def _initialize_game_run(self):
         """
         """
         self.game.reset()
         for agent in self.agents:
             agent.reset()
-        
+
+    def run_mdp(self, mdp, agent, num_trials):
+        """
+        """
+        total_time_steps = 0
+        for i in range(num_trials):
+            self.logger.info("Trial {}/{}".format(i + 1, num_trials))
+            num_steps = self._run_trial(mdp, agent, i)
+            total_time_steps += num_steps
+        self.logger.info("Trials complete.")
+        input("\nPress enter key to end.")
+
+    def _run_trial(self, mdp, agent, trial_num):
+        """
+        """
+        mdp.reset()
+
+        while not mdp.is_terminal():
+            action = None
+            if random() >= mdp.exploration_rate:
+                action = agent.search(mdp.copy(), time_allowed)
+            else:
+                action = mdp.generate_random_action()
+            
+
+            
+
+#        done = False
+#        while not done:
+#            action = self.state.action_space_sample()
+#            if random() >= self.exploration_rate:
+#                action = self.agent.get_max_action(self.state)
+#
+#            reward, done = self.state.step(action)
+#
+#            self.agent.update_weights(curr_state, self.state, reward, action, done)
+#            self._update_debug_info(reward, action)
+#
+#            curr_state = self.state.copy()
+#            if self.render:
+#                print(self.state)
+
     def run_games(self, num_games):
         """
         Run num_games number of game simulations.
         """
         for i in range(num_games):
             self.logger.info("Game {}/{}".format(i + 1, num_games))
-            self.initialize_match()
+            self._initialize_game_run()
             self._run_game()
         self.logger.info("Games complete")
         input("\nPress enter key to end.")
