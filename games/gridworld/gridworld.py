@@ -5,10 +5,10 @@ from games.gridworld.gridworld_action import GridworldAction
 from games.gridworld.gridworld_direction import GridworldDirection
 from games.gridworld.gridworld_display import GridworldDisplay
 
-from willsmith.game import Game
+from willsmith.mdp import MDP
 
 
-class Gridworld(Game):
+class Gridworld(MDP):
     """
     A wrapper for the standard example of a Markov Decision Process.  
     """
