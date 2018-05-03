@@ -20,9 +20,12 @@ class GridworldDisplay(GUIDisplayController):
     SQUARE_WIDTH = 64
     SQUARE_BORDER = 2
 
+    BLACK = "#000000"
+    MAX_COLOR_VALUE = 256
+
     BACKGROUND_COLOR = "#FFFFFF"
     SQUARE_EMPTY_COLOR = "#A9A9A9"
-    SQUARE_BORDER_COLOR = "#000000"
+    SQUARE_BORDER_COLOR = BLACK
     SQUARE_AGENT_COLOR = "#FFFF00"
 
     def __init__(self):
@@ -79,10 +82,13 @@ class GridworldDisplay(GUIDisplayController):
         shades of green.
         """
         neg_rewards, pos_rewards = self._get_terminal_rewards_lists(state)
-        neg_color_step = (256 - len(neg_rewards)) // len(neg_rewards)
-        pos_color_step = (256 - len(pos_rewards)) // len(pos_rewards)
 
-        lookup = {0 : "#000000"}
+        # the - len() calls are to remove a single step from range, so that 
+        # 0 * step can be skipped to avoid black in both ranges
+        neg_color_step = (self.MAX_COLOR_VALUE - len(neg_rewards)) // len(neg_rewards)
+        pos_color_step = (self.MAX_COLOR_VALUE - len(pos_rewards)) // len(pos_rewards)
+        
+        lookup = {0 : self.BLACK}
         lookup.update({reward : self._num_to_hex_string((i + 1) * neg_color_step, True)
                     for i, reward in enumerate(neg_rewards)})
         lookup.update({reward : self._num_to_hex_string((i + 1) * pos_color_step, False)
