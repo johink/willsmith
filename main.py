@@ -18,7 +18,6 @@ from agents.random_agent import RandomAgent
 from games.havannah.havannah import Havannah
 from games.ttt.nested_ttt import NestedTTT
 
-from willsmith.simple_displays import ConsoleDisplay, NoDisplay
 from willsmith.simulator import Simulator
 
 
@@ -109,19 +108,14 @@ def lookup_game(game_str):
     getLogger().info("Game is {}".format(game.__name__))
     return game
 
-def adjust_display(game, agents, no_display, console):
+def determine_display(no_display, console_display):
     gui = True
-    if no_display or console:
-        for agent in agents:
-            agent.DISPLAY = None
+    if no_display:
+        gui = None
+        getLogger().debug("Non-display option chosen")
+    elif console_display:
         gui = False
-
-        if no_display:
-            getLogger().debug("Non-display option chosen")
-            game.DISPLAY = NoDisplay
-        else:
-            getLogger().debug("Console display option chosen")
-            game.DISPLAY = ConsoleDisplay
+        getLogger().debug("Console display option chosen")
     return gui
 
 def main():
@@ -133,7 +127,7 @@ def main():
     game = lookup_game(args.game_choice)
     agents = [lookup_agent(i, astr) for i, astr in enumerate(args.agents)]
         
-    gui = adjust_display(game, agents, args.no_display, args.console_display)
+    gui = determine_display(args.no_display, args.console_display)
 
     time = args.time_allotted
     logger.debug("Agents have {} seconds per turn".format(time))

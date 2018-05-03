@@ -4,6 +4,7 @@ from random import choice
 
 from willsmith.action import Action
 from willsmith.display_controller import DisplayController
+from willsmith.simple_displays import ConsoleDisplay, NoDisplay
 
 
 class Game(ABC):
@@ -31,7 +32,7 @@ class Game(ABC):
     DISPLAY = None
     NUM_PLAYERS = None
 
-    def __init__(self):
+    def __init__(self, use_display):
         """
         Start the game with the first player and sets the number of agents 
         for keeping this index within bounds.
@@ -42,12 +43,17 @@ class Game(ABC):
         self.num_agents = self.NUM_PLAYERS
         self.current_agent_id = 0
 
+        self.display = NoDisplay()
+        if use_display is not None:
+            if not use_display or self.DISPLAY is None:
+                self.display = ConsoleDisplay()
+            else:
+                self.display = self.DISPLAY()
+        self.display.start(is_main = True)
+
         if (self.ACTION is None 
                 or not issubclass(self.ACTION, Action)):
             raise RuntimeError("Game must set its own action, which must subclass Action.")
-        if (self.DISPLAY is None 
-                or not issubclass(self.DISPLAY, DisplayController)):
-            raise RuntimeError("Game must set its display, which must subclass DisplayController.")
         if self.NUM_PLAYERS is None:
             raise RuntimeError("Game must set expected number of players.")
 
@@ -71,6 +77,20 @@ class Game(ABC):
 
         self._take_action(action)
         self._increment_current_agent_id()
+        if self.display is not None:    # display is None in copies
+            self.display.update_display(self, action)
+
+    def reset(self):
+        self._reset()
+        if self.display is not None:    # display is None in copies
+            self.display.reset_display(self)
+
+    @abstractmethod
+    def _reset(self):
+        """
+        Revert the game back to its initial state.
+        """
+        pass
 
     @abstractmethod
     def _get_legal_actions(self):
@@ -79,6 +99,7 @@ class Game(ABC):
         current state of the game.
         """
         pass
+
     @abstractmethod
     def is_legal_action(self, action):
         """
@@ -147,7 +168,11 @@ class Game(ABC):
         """
         Used by subclasses to copy over the game attributes to a new deepcopy 
         of the subclass.
+
+        Does not copy the display instance over, so that modifications to 
+        a copy do not update/change the original.
         """
         new.num_agents = self.num_agents
         new.current_agent_id = self.current_agent_id
+        new.display = None
         return new

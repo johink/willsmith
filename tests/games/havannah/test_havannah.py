@@ -8,7 +8,7 @@ class TestHavannah(GameTestCase):
 
     def setUp(self):
         super().setUp()
-        self.game = Havannah()
+        self.game = Havannah(None)
         self.test_action = HavannahAction((0, 0, 0), Color.BLUE)
 
     def test_get_legal_actions_color_stays_in_sync(self):

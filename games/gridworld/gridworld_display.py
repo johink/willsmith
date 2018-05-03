@@ -48,8 +48,8 @@ class GridworldDisplay(GUIDisplayController):
         draw the agent in its new position.
         """
         clear_pos = self._square_coord_to_canvas_coord(*state.last_player_pos)
-        new_pos = self._square_coord_to_canvas_coord(*state.player_pos)
         self._draw_square(state.grid[state.last_player_pos], clear_pos, False)
+        new_pos = self._square_coord_to_canvas_coord(*state.player_pos)
         self._draw_square(state.grid[state.player_pos], new_pos, True)
 
     def _reset_display(self, state):

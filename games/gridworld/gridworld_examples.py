@@ -34,9 +34,9 @@ simple_start = (0, 0)
 simple_grid = Grid(simple_terminals, simple_living_reward, simple_walls, 
                     simple_grid_size)
 simple_gridworld = Gridworld(simple_grid, deterministic_transition, 
-                                simple_start)
+                                simple_start, True)
 
-classic_gridworld = Gridworld(simple_grid, shaky_transition, simple_start)
+classic_gridworld = Gridworld(simple_grid, shaky_transition, simple_start, True)
 
 bridge_crossing_terminals = {(x, y) : -100
                                 for x in range(1, 6) for y in [0, 2]}
@@ -48,4 +48,4 @@ bridge_crossing_start = (0, 1)
 bridge_crossing_grid = Grid(bridge_crossing_terminals, simple_living_reward, 
                                 bridge_crossing_walls, bridge_crossing_size)
 bridge_crossing_gridworld = Gridworld(bridge_crossing_grid, shaky_transition,
-                                        bridge_crossing_start)
+                                        bridge_crossing_start, True)

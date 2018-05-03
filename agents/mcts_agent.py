@@ -36,6 +36,7 @@ class MCTSAgent(Agent):
         Also initialize debug attributes for use in logging.
         """
         super().__init__(agent_id, use_gui)
+        self._reset()
 
     def _reset(self):
         self.root = self.Node(None, None)

@@ -12,7 +12,7 @@ class TestGridworld(GameTestCase):
     def setUp(self):
         super().setUp()
         self.game = Gridworld(Grid(simple_terminals, 0, simple_walls, (4,3)), 
-                                deterministic_transition, (0, 0))
+                                deterministic_transition, (0, 0), None)
         self.test_action = GridworldAction(GridworldDirection.UP)
 
     def test_game_equality(self):

@@ -17,19 +17,24 @@ class Gridworld(Game):
     DISPLAY = GridworldDisplay
     NUM_PLAYERS = 1
 
-    def __init__(self, grid, transition_func, agent_start_pos):
+    def __init__(self, grid, transition_func, agent_start_pos, use_display):
         """
         """
-        super().__init__()
+        super().__init__(use_display)
 
         self.grid = grid
         self.transition_func = transition_func
 
-        self.player_pos = agent_start_pos
+        self.start_pos = agent_start_pos
+        self.player_pos = self.start_pos
         self.last_player_pos = None
         self.terminal = False
 
         self.legal_actions = self._create_legal_actions_list()
+
+    def _reset(self):
+        self.player_pos = self.start_pos
+        self.last_player_pos = None
 
     def _get_legal_actions(self):
         return self.legal_actions

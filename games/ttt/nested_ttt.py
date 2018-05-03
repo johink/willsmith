@@ -31,7 +31,11 @@ class NestedTTT(Game):
     DISPLAY = TTTDisplay
     NUM_PLAYERS = 2
 
-    def __init__(self):
+    def __init__(self, use_display):
+        super().__init__(use_display)
+        self._reset()
+
+    def _reset(self):
         """
         Initialize the state for the game and checking for legal moves.
 
@@ -43,8 +47,6 @@ class NestedTTT(Game):
         if a move is legal, and also faster generation of the available legal 
         actions in get_legal_actions.
         """
-        super().__init__()
-
         self.outer_board = TTTBoard()
         self.inner_boards = [[TTTBoard() for _ in range(TTTBoard.BOARD_SIZE)] 
                                 for _ in range(TTTBoard.BOARD_SIZE)]

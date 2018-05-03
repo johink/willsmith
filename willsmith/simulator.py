@@ -15,35 +15,26 @@ class Simulator:
         - Store the game and agent classes for later instantiation when a 
         simulation is started.  
         - Adds action information to HumanAgents if they are playing.
-        - Constructs display classes for game and possibly agents.
         - Retrieves the logger instance for this module.
         - Checks the number of players expected by the game against the 
         number of agents provided.
         """
-        self.game = game
+        self.game = game(gui_display)
         self.agents = [(agent(i, gui_display) 
                             if agent is not HumanAgent 
                             else agent(i, gui_display, self.game.ACTION))
                             for i, agent in enumerate(agent_list)]
+
         if len(self.agents) != self.game.NUM_PLAYERS:
             raise RuntimeError("Incorrect number of agents for game type.")
 
         self.time_allowed = time_allowed
         self.logger = getLogger(__name__)
 
-        self._create_displays(gui_display)
-
-    def _create_displays(self, gui_display):
-        self.game_display_controller = self.game.DISPLAY()
-
     def initialize_match(self):
         """
-        Create instances of the game and the agents, in preparation for a 
-        new simulation.
         """
-        self.current_game = self.game()
-        self.game_display_controller.reset_display(self.current_game)
-
+        self.game.reset()
         for agent in self.agents:
             agent.reset()
         
@@ -51,8 +42,6 @@ class Simulator:
         """
         Run num_games number of game simulations.
         """
-        self.game_display_controller.start(is_main = True)
-
         for i in range(num_games):
             self.logger.info("Game {}/{}".format(i + 1, num_games))
             self.initialize_match()
@@ -70,26 +59,23 @@ class Simulator:
         """
         for agent in self.agents:
             self.logger.debug("Agent {} start {}".format(agent.agent_id, agent))
-        while not self.current_game.is_terminal():
-            current_agent = self.agents[self.current_game.current_agent_id]
-            action = current_agent.search(self.current_game.copy(), self.time_allowed)
+
+        while not self.game.is_terminal():
+            current_agent = self.agents[self.game.current_agent_id]
+            action = current_agent.search(self.game.copy(), self.time_allowed)
             self.logger.debug("Agent {} {}".format(current_agent.agent_id, current_agent))
             self._advance_by_action(action)
 
-        self.logger.info("Winning agent is {}".format(self.current_game.get_winning_id()))
-        self.logger.debug("Final state\n{}".format(self.current_game))
+        self.logger.info("Winning agent is {}".format(self.game.get_winning_id()))
+        self.logger.debug("Final state\n{}".format(self.game))
 
     def _advance_by_action(self, action):
         """
-        Update the game, agents, and display with the given action.
-
-        Only the agent display of the agent that chose the action is updated.
+        Update the game and agents with the given action.
         """
-        self.logger.debug("Agent {} action {}".format(self.current_game.current_agent_id, action))
-        agent_id_for_action = self.current_game.current_agent_id
-        self.current_game.take_action(action)
+        self.logger.debug("Agent {} action {}".format(self.game.current_agent_id, action))
+        agent_id_for_action = self.game.current_agent_id
 
-        self.game_display_controller.update_display(self.current_game, action)
-
+        self.game.take_action(action)
         for agent in self.agents:
             agent.take_action(action, agent.agent_id == agent_id_for_action)
