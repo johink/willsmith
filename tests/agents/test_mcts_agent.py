@@ -7,7 +7,7 @@ from agents.mcts_agent import MCTSAgent
 class TestMCTSAgent(TestCase):
 
     def setUp(self):
-        self.agent = MCTSAgent(0)
+        self.agent = MCTSAgent(0, False)
 
     @patch("willsmith.game.Game")
     def test_expansion_in_terminal_state_noop(self, game):

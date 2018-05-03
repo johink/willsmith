@@ -21,24 +21,20 @@ class Simulator:
         number of agents provided.
         """
         self.game = game
-        self.agents = agent_list
+        self.agents = [(agent(i, gui_display) 
+                            if agent is not HumanAgent 
+                            else agent(i, gui_display, self.game.ACTION))
+                            for i, agent in enumerate(agent_list)]
         if len(self.agents) != self.game.NUM_PLAYERS:
             raise RuntimeError("Incorrect number of agents for game type.")
 
         self.time_allowed = time_allowed
         self.logger = getLogger(__name__)
 
-        self._add_prompt_to_human_agents(self.game.ACTION)
         self._create_displays(gui_display)
 
     def _create_displays(self, gui_display):
         self.game_display_controller = self.game.DISPLAY()
-        self.agent_display_controllers = dict()
-
-        if gui_display:
-            for i, agent in enumerate(self.agents):
-                if agent.GUI_DISPLAY is not None:
-                    self.agent_display_controllers[i] = agent.GUI_DISPLAY()
 
     def initialize_match(self):
         """
@@ -46,19 +42,16 @@ class Simulator:
         new simulation.
         """
         self.current_game = self.game()
-        self.current_agents = [agent(i) for i, agent in enumerate(self.agents)]
-
         self.game_display_controller.reset_display(self.current_game)
-        for agent_id, display in self.agent_display_controllers.items():
-            display.reset_display(self.current_agents[agent_id])
+
+        for agent in self.agents:
+            agent.reset()
         
     def run_games(self, num_games):
         """
         Run num_games number of game simulations.
         """
         self.game_display_controller.start(is_main = True)
-        for display in self.agent_display_controllers.values():
-            display.start(is_main = False)
 
         for i in range(num_games):
             self.logger.info("Game {}/{}".format(i + 1, num_games))
@@ -75,10 +68,10 @@ class Simulator:
         an action selection and then taking that action, until a terminal 
         state of the game is reached.
         """
-        for agent in self.current_agents:
+        for agent in self.agents:
             self.logger.debug("Agent {} start {}".format(agent.agent_id, agent))
         while not self.current_game.is_terminal():
-            current_agent = self.current_agents[self.current_game.current_agent_id]
+            current_agent = self.agents[self.current_game.current_agent_id]
             action = current_agent.search(self.current_game.copy(), self.time_allowed)
             self.logger.debug("Agent {} {}".format(current_agent.agent_id, current_agent))
             self._advance_by_action(action)
@@ -93,23 +86,10 @@ class Simulator:
         Only the agent display of the agent that chose the action is updated.
         """
         self.logger.debug("Agent {} action {}".format(self.current_game.current_agent_id, action))
-        action_agent_id = self.current_game.current_agent_id
-
+        agent_id_for_action = self.current_game.current_agent_id
         self.current_game.take_action(action)
 
         self.game_display_controller.update_display(self.current_game, action)
-        for agent_id, display in self.agent_display_controllers.items():
-            if agent_id == action_agent_id:
-                display.update_display(self.current_agents[agent_id], action)
 
-        for agent in self.current_agents:
-            agent.take_action(action)
-    
-    def _add_prompt_to_human_agents(self, action):
-        """
-        Update any HumanAgents with the information needed to input the 
-        actions for the given game.
-        """
         for agent in self.agents:
-            if agent is HumanAgent:
-                agent.add_input_info(action.INPUT_PROMPT, action.parse_action)
+            agent.take_action(action, agent.agent_id == agent_id_for_action)

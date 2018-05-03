@@ -29,13 +29,15 @@ class MCTSAgent(Agent):
 
     GUI_DISPLAY = MCTSDisplay
 
-    def __init__(self, agent_id):
+    def __init__(self, agent_id, use_gui):
         """
         Run the Agent initializer and start the gametree.
 
         Also initialize debug attributes for use in logging.
         """
-        super().__init__(agent_id)
+        super().__init__(agent_id, use_gui)
+
+    def _reset(self):
         self.root = self.Node(None, None)
 
         self.playout_total = 0
@@ -68,7 +70,7 @@ class MCTSAgent(Agent):
 
         return max_action
 
-    def take_action(self, action):
+    def _take_action(self, action):
         """
         Move the tree root to the child node of the current root corresponding
         to the action.

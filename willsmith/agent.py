@@ -15,8 +15,19 @@ class Agent(ABC):
 
     GUI_DISPLAY = None
 
-    def __init__(self, agent_id):
+    def __init__(self, agent_id, use_gui):
         self.agent_id = agent_id
+        self.display = None
+        if use_gui and self.GUI_DISPLAY is not None:
+            self.display = self.GUI_DISPLAY()
+            self.display.start(is_main = False)
+
+    @abstractmethod
+    def _reset(self):
+        """
+        Revert the agent back to its initial state.
+        """
+        pass
 
     @abstractmethod
     def search(self, state, allotted_time):
@@ -28,9 +39,19 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def take_action(self, action):
+    def _take_action(self, action):
         """
         Update the agent's internal state by the latest action taken in the 
         game.
         """
         pass
+
+    def take_action(self, action, is_my_action):
+        if is_my_action and self.display is not None:
+            self.display.update_display(self, action)
+        self._take_action(action)
+        
+    def reset(self):
+        self._reset()
+        if self.display is not None:
+            self.display.reset_display(self)

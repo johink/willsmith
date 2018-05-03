@@ -6,8 +6,8 @@ class RandomAgent(Agent):
     Agent that chooses random actions regardless of the game state.
     """
 
-    def __init__(self, agent_id):
-        super().__init__(agent_id)
+    def __init__(self, agent_id, use_gui):
+        super().__init__(agent_id, use_gui)
 
     def search(self, state, allotted_time):
         """
@@ -15,7 +15,10 @@ class RandomAgent(Agent):
         """
         return state.generate_random_action()
 
-    def take_action(self, action):
+    def _reset(self):
+        pass
+
+    def _take_action(self, action):
         pass
 
     def __str__(self):
