@@ -81,7 +81,9 @@ class Game(ABC):
             self.display.update_display(self, action)
 
     def reset(self):
+        self.current_agent_id = 0
         self._reset()
+
         if self.display is not None:    # display is None in copies
             self.display.reset_display(self)
 

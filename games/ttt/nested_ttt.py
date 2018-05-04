@@ -160,11 +160,10 @@ class NestedTTT(Game):
     def __eq__(self, other):
         equal = False
         if isinstance(self, other.__class__):
-            equal = (self.outer_board == other.outer_board
+            equal = (super().__eq__(other)
+                        and self.outer_board == other.outer_board
                         and self.inner_boards == other.inner_boards
-                        and self.legal_actions == other.legal_actions
-                        and self.current_agent_id == other.current_agent_id
-                        and self.num_agents == other.num_agents)
+                        and self.legal_actions == other.legal_actions)
         return equal
 
     def __hash__(self):
