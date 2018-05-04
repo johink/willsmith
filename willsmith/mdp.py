@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from copy import deepcopy
+from copy import copy, deepcopy
 from random import choice
 
 from willsmith.simple_displays import ConsoleDisplay, NoDisplay
@@ -13,6 +13,8 @@ class MDP(ABC):
 
     def __init__(self, use_display):
         self.timesteps = 0
+        self.total_reward = 0
+        self.reward_history = []
 
         self.display = NoDisplay()
         if use_display is not None:
@@ -46,23 +48,32 @@ class MDP(ABC):
         if not self.is_legal_action(action):
             raise RuntimeError("Received illegal action: {}".format(action))
 
-        self._step(action)
+        reward, terminal = self._step(action)
+
         self.timesteps += 1
-        if self.display is not None:    # display is None in copies
+        self.total_reward += reward
+        self.reward_history.append(reward)
+
+        if self.display is not None:
             self.display.update_display(self, action)
+        
+        return reward, terminal
 
-    def undo(self):
+    def undo(self, action):
         self.timesteps -= 1
-        self._undo()
+        self.total_reward -= self.reward_history.pop()
+        self._undo(action)
 
-        if self.display is not None:    # display is None in copies
+        if self.display is not None:
             self.display.update_display(self, action)
 
     def reset(self):
         self.timesteps = 0
+        self.total_reward = 0
+        self.reward_history = []
         self._reset()
         
-        if self.display is not None:    # display is None in copies
+        if self.display is not None:
             self.display.reset_display(self)
 
     def is_legal_action(self, action):
@@ -75,7 +86,9 @@ class MDP(ABC):
         return deepcopy(self)
 
     def __eq__(self, other):
-        return self.timesteps == other.timesteps
+        return (self.timesteps == other.timesteps
+                    and self.total_reward == other.total_reward
+                    and self.reward_history == other.reward_history)
 
     def deepcopy_mdp_attrs(self, new):
         """
@@ -86,5 +99,7 @@ class MDP(ABC):
         a copy do not update/change the original.
         """
         new.timesteps = self.timesteps
+        new.total_reward = self.total_reward
+        new.reward_history = copy(self.reward_history)
         new.display = None
         return new

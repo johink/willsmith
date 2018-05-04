@@ -40,9 +40,9 @@ class Gridworld(MDP):
         self.player_pos = pos
         self.terminal = terminal
 
-        return pos, reward, terminal
+        return reward, terminal
 
-    def _undo(self):
+    def _undo(self, action):
         if self.terminal:
             self.terminal = False
         

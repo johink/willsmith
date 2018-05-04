@@ -26,8 +26,8 @@ class Simulator:
                             else agent(i, gui_display, self.game.ACTION))
                             for i, agent in enumerate(agent_list)]
 
-        if len(self.agents) != self.game.NUM_PLAYERS:
-            raise RuntimeError("Incorrect number of agents for game type.")
+        #if len(self.agents) != self.game.NUM_PLAYERS:
+            #raise RuntimeError("Incorrect number of agents for game type.")
 
         self.time_allowed = time_allowed
         self.logger = getLogger(__name__)
@@ -45,40 +45,30 @@ class Simulator:
         total_time_steps = 0
         for i in range(num_trials):
             self.logger.info("Trial {}/{}".format(i + 1, num_trials))
-            num_steps = self._run_trial(mdp, agent, i)
+            print("trial {}".format(i+1))
+            num_steps = self._run_trial(mdp, agent)
             total_time_steps += num_steps
+            print("reward:{}; timesteps:{}".format(mdp.total_reward, mdp.timesteps))
+
+        print(agent.weights)
         self.logger.info("Trials complete.")
         input("\nPress enter key to end.")
 
-    def _run_trial(self, mdp, agent, trial_num):
+    def _run_trial(self, mdp, agent):
         """
         """
         mdp.reset()
+        prev_state = None
 
         while not mdp.is_terminal():
-            action = None
-            if random() >= mdp.exploration_rate:
-                action = agent.search(mdp.copy(), time_allowed)
-            else:
-                action = mdp.generate_random_action()
-            
+            action = agent.get_next_action(mdp.copy())
 
-            
+            prev_state = mdp.copy()
+            reward, terminal = mdp.step(action)
 
-#        done = False
-#        while not done:
-#            action = self.state.action_space_sample()
-#            if random() >= self.exploration_rate:
-#                action = self.agent.get_max_action(self.state)
-#
-#            reward, done = self.state.step(action)
-#
-#            self.agent.update_weights(curr_state, self.state, reward, action, done)
-#            self._update_debug_info(reward, action)
-#
-#            curr_state = self.state.copy()
-#            if self.render:
-#                print(self.state)
+            agent.update(prev_state, mdp, reward, action, terminal)
+
+        return mdp.timesteps
 
     def run_games(self, num_games):
         """
