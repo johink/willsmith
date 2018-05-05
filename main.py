@@ -124,18 +124,23 @@ def main():
 
     logger = create_logger(args.debug)
 
-    game = lookup_game(args.game_choice)
-    agents = [lookup_agent(i, astr) for i, astr in enumerate(args.agents)]
-        
-    gui = determine_display(args.no_display, args.console_display)
-
-    time = args.time_allotted
-    logger.debug("Agents have {} seconds per turn".format(time))
+    use_gui = determine_display(args.no_display, args.console_display)
+    time_allotted = args.time_allotted
+    logger.debug("Agents have {} seconds per turn".format(time_allotted))
     num_games = args.num_games
     logger.debug("{} game(s) will be played".format(num_games))
 
-    simulator = Simulator(game, agents, time, gui)
-    simulator.run_games(num_games)
+    game = lookup_game(args.game_choice)(use_gui)
+    agents = [lookup_agent(i, astr) for i, astr in enumerate(args.agents)]
+
+    simulator = Simulator()
+    simulator.run_games(game, 
+                            [(agent(i, use_gui) 
+                                if agent is not HumanAgent 
+                                else agent(i, use_gui, game.ACTION))
+                                for i, agent in enumerate(agents)], 
+                            time_allotted, 
+                            num_games)
 
 if __name__ == "__main__":
     main()
