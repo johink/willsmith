@@ -11,23 +11,12 @@ class Simulator:
 
     def __init__(self, game, agent_list, time_allowed, gui_display):
         """
-        Prepares all of the objects for a game simulation:
-
-        - Store the game and agent classes for later instantiation when a 
-        simulation is started.  
-        - Adds action information to HumanAgents if they are playing.
-        - Retrieves the logger instance for this module.
-        - Checks the number of players expected by the game against the 
-        number of agents provided.
         """
         self.game = game(gui_display)
         self.agents = [(agent(i, gui_display) 
                             if agent is not HumanAgent 
                             else agent(i, gui_display, self.game.ACTION))
                             for i, agent in enumerate(agent_list)]
-
-        #if len(self.agents) != self.game.NUM_PLAYERS:
-            #raise RuntimeError("Incorrect number of agents for game type.")
 
         self.time_allowed = time_allowed
         self.logger = getLogger(__name__)
@@ -45,12 +34,12 @@ class Simulator:
         total_time_steps = 0
         for i in range(num_trials):
             self.logger.info("Trial {}/{}".format(i + 1, num_trials))
-            print("trial {}".format(i+1))
+            #print("trial {}".format(i+1))
             num_steps = self._run_trial(mdp, agent)
             total_time_steps += num_steps
-            print("reward:{}; timesteps:{}".format(mdp.total_reward, mdp.timesteps))
+            #print("reward:{}; timesteps:{}".format(mdp.total_reward, mdp.timesteps))
 
-        print(agent.weights)
+        #print(agent.weights)
         self.logger.info("Trials complete.")
         input("\nPress enter key to end.")
 
@@ -74,6 +63,9 @@ class Simulator:
         """
         Run num_games number of game simulations.
         """
+        if len(self.agents) != self.game.NUM_PLAYERS:
+            raise RuntimeError("Incorrect number of agents for game type.")
+
         for i in range(num_games):
             self.logger.info("Game {}/{}".format(i + 1, num_games))
             self._initialize_game_run()

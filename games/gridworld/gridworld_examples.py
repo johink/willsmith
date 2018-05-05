@@ -24,7 +24,7 @@ def shaky_transition(action):
 #   Example Gridworlds
 #####################################
 
-simple_terminals = {(3, 1) : -10, (3, 2) : 10}
+simple_terminals = {(3, 1) : -50, (3, 2) : 50}
 simple_living_reward = -1
 simple_walls = {(1, 1)}
 simple_grid_size = (4,3)

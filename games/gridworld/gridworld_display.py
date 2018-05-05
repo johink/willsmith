@@ -44,13 +44,8 @@ class GridworldDisplay(GUIDisplayController):
 
     def _update_display(self, state, action):
         """
-        Clear the previous square the agent occupied by redrawing it, then 
-        draw the agent in its new position.
         """
-        clear_pos = self._square_coord_to_canvas_coord(*state.previous_positions[-1])
-        self._draw_square(state.grid[state.previous_positions[-1]], clear_pos, False)
-        new_pos = self._square_coord_to_canvas_coord(*state.player_pos)
-        self._draw_square(state.grid[state.player_pos], new_pos, True)
+        self._draw_grid(state)
 
     def _reset_display(self, state):
         """
@@ -64,9 +59,10 @@ class GridworldDisplay(GUIDisplayController):
         self.root.geometry("{}x{}".format((width * self.SQUARE_WIDTH 
                                             + self.SQUARE_BORDER * 4), 
                                             self.height))
-
         self.lookup = self._create_color_lookup(state)
+        self._draw_grid(state)
 
+    def _draw_grid(self, state):
         for pos in state.grid.keys():
             agent_square = False
             if pos == state.player_pos:
