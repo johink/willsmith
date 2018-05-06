@@ -2,6 +2,7 @@ import torch
 import random
 
 from util import zero_gen, one_neg_one_gen, ReplayBuffer
+from architectures import NestedTTTNet
 
 class SelfPlayTrainer:
     def __init__(self, agent, game, buffer_file = None, weights_file = None, n_batches = 0):
@@ -116,7 +117,7 @@ class SelfPlayTrainer:
         rewards = torch.FloatTensor(rewards).unsqueeze(1).requires_grad_(True)
         self.optim.zero_grad()
 
-        ps, vs = trainer.current_network(states)
+        ps, vs = self.current_network(states)
 
         loss = torch.nn.functional.mse_loss(vs, rewards) - (ps.log() * probs).sum()
         loss.backward()

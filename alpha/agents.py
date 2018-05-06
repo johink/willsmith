@@ -14,7 +14,7 @@ class AlphaMCTSAgent:
             raise ValueError("Control net must be set before starting searches")
         playouts = 0
 
-        start_time = time()
+        #start_time = time()
         while playouts < allotted_playouts:
             current_game = game.copy()
             current_game, node = self._selection(current_game)
