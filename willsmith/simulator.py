@@ -1,115 +1,85 @@
 from logging import getLogger
 
-from agents.human_agent import HumanAgent
-
 
 class Simulator:
     """
-    Game simulator that manages running a game and agent players.
     """
 
-    def __init__(self, game, agent_list, time_allowed, gui_display):
-        """
-        Prepares all of the objects for a game simulation:
+    def __init__(self):
+        pass
 
-        - Store the game and agent classes for later instantiation when a 
-        simulation is started.  
-        - Adds action information to HumanAgents if they are playing.
-        - Constructs display classes for game and possibly agents.
-        - Retrieves the logger instance for this module.
-        - Checks the number of players expected by the game against the 
-        number of agents provided.
-        """
-        self.game = game
-        self.agents = agent_list
-        if len(self.agents) != self.game.NUM_PLAYERS:
-            raise RuntimeError("Incorrect number of agents for game type.")
-
-        self.time_allowed = time_allowed
-        self.logger = getLogger(__name__)
-
-        self._add_prompt_to_human_agents(self.game.ACTION)
-        self._create_displays(gui_display)
-
-    def _create_displays(self, gui_display):
-        self.game_display_controller = self.game.DISPLAY()
-        self.agent_display_controllers = dict()
-
-        if gui_display:
-            for i, agent in enumerate(self.agents):
-                if agent.GUI_DISPLAY is not None:
-                    self.agent_display_controllers[i] = agent.GUI_DISPLAY()
-
-    def initialize_match(self):
-        """
-        Create instances of the game and the agents, in preparation for a 
-        new simulation.
-        """
-        self.current_game = self.game()
-        self.current_agents = [agent(i) for i, agent in enumerate(self.agents)]
-
-        self.game_display_controller.reset_display(self.current_game)
-        for agent_id, display in self.agent_display_controllers.items():
-            display.reset_display(self.current_agents[agent_id])
-        
-    def run_games(self, num_games):
+    @staticmethod
+    def run_games(game, agents, time_allowed, num_games):
         """
         Run num_games number of game simulations.
         """
-        self.game_display_controller.start(is_main = True)
-        for display in self.agent_display_controllers.values():
-            display.start(is_main = False)
+        if len(agents) != game.NUM_PLAYERS:
+            raise RuntimeError("Incorrect number of agents for game type.")
 
         for i in range(num_games):
-            self.logger.info("Game {}/{}".format(i + 1, num_games))
-            self.initialize_match()
-            self._run_game()
-        self.logger.info("Games complete")
+            getLogger(__name__).info("Game {}/{}".format(i + 1, num_games))
+            Simulator._run_game(game, agents, time_allowed)
+        getLogger(__name__).info("Games complete")
         input("\nPress enter key to end.")
 
-    def _run_game(self):
+    @staticmethod
+    def _run_game(game, agents, time_allowed):
         """
-        Run a playthrough of the game.
-
-        Progresses through the list of agents repeatedly, prompting them for 
-        an action selection and then taking that action, until a terminal 
-        state of the game is reached.
         """
-        for agent in self.current_agents:
-            self.logger.debug("Agent {} start {}".format(agent.agent_id, agent))
-        while not self.current_game.is_terminal():
-            current_agent = self.current_agents[self.current_game.current_agent_id]
-            action = current_agent.search(self.current_game.copy(), self.time_allowed)
-            self.logger.debug("Agent {} {}".format(current_agent.agent_id, current_agent))
-            self._advance_by_action(action)
+        game.reset()
+        for agent in agents:
+            agent.reset()
+            getLogger(__name__).debug("Agent {} start {}".format(agent.agent_id, agent))
 
-        self.logger.info("Winning agent is {}".format(self.current_game.get_winning_id()))
-        self.logger.debug("Final state\n{}".format(self.current_game))
+        while not game.is_terminal():
+            current_agent = agents[game.current_agent_id]
+            action = current_agent.search(game.copy(), time_allowed)
+            getLogger(__name__).debug("Agent {} {}".format(current_agent.agent_id, current_agent))
+            Simulator._advance_by_action(game, agents, action)
 
-    def _advance_by_action(self, action):
+        getLogger(__name__).info("Winning agent is {}".format(game.get_winning_id()))
+        getLogger(__name__).debug("Final state\n{}".format(game))
+
+    @staticmethod
+    def _advance_by_action(game, agents, action):
         """
-        Update the game, agents, and display with the given action.
-
-        Only the agent display of the agent that chose the action is updated.
+        Update the game and agents with the given action.
         """
-        self.logger.debug("Agent {} action {}".format(self.current_game.current_agent_id, action))
-        action_agent_id = self.current_game.current_agent_id
+        getLogger(__name__).debug("Agent {} action {}".format(game.current_agent_id, action))
+        agent_id_for_action = game.current_agent_id
 
-        self.current_game.take_action(action)
+        game.take_action(action)
+        for agent in agents:
+            agent.take_action(action, agent.agent_id == agent_id_for_action)
 
-        self.game_display_controller.update_display(self.current_game, action)
-        for agent_id, display in self.agent_display_controllers.items():
-            if agent_id == action_agent_id:
-                display.update_display(self.current_agents[agent_id], action)
-
-        for agent in self.current_agents:
-            agent.take_action(action)
-    
-    def _add_prompt_to_human_agents(self, action):
+    @staticmethod
+    def run_mdp(mdp, agent, num_trials):
         """
-        Update any HumanAgents with the information needed to input the 
-        actions for the given game.
         """
-        for agent in self.agents:
-            if agent is HumanAgent:
-                agent.add_input_info(action.INPUT_PROMPT, action.parse_action)
+        total_time_steps = 0
+        for i in range(num_trials):
+            getLogger(__name__).info("Trial {}/{}".format(i + 1, num_trials))
+            num_steps = Simulator._run_trial(mdp, agent)
+            total_time_steps += num_steps
+            getLogger(__name__).debug("reward:{}; timesteps:{}".format(mdp.total_reward, mdp.timesteps))
+
+        getLogger(__name__).debug("Final agent weights: {}".format(agent.weights))
+        getLogger(__name__).info("Trials complete.")
+        input("\nPress enter key to end.")
+
+    @staticmethod
+    def _run_trial(mdp, agent):
+        """
+        """
+        mdp.reset()
+        prev_state = None
+
+        while not mdp.is_terminal():
+            action = agent.get_next_action(mdp.copy())
+
+            prev_state = mdp.copy()
+            reward, terminal = mdp.step(action)
+
+            agent.update(prev_state, mdp, reward, action, terminal)
+
+        return mdp.timesteps

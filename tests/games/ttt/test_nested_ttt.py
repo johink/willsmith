@@ -9,7 +9,7 @@ class TestNestedTTT(GameTestCase):
     
     def setUp(self):
         super().setUp()
-        self.game = NestedTTT()
+        self.game = NestedTTT(None)
         self.test_action = TTTAction((0, 0), (0, 0), TTTMove.X)
 
     def test_winning_inner_win_triggers_outer_action(self):

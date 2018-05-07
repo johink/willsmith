@@ -14,11 +14,14 @@ class HumanAgent(Agent):
     INPUT_PROMPT = None
     INPUT_PARSER = None
 
-    def __init__(self, agent_id):
-        super().__init__(agent_id)
+    def __init__(self, agent_id, use_gui, action):
+        super().__init__(agent_id, use_gui)
 
-        if self.INPUT_PROMPT is None or self.INPUT_PARSER is None:
-            raise RuntimeError("INPUT_PROMPT and INPUT_PARSER need to be set for HumanAgent to be able to create actions from user input.")
+        self.add_input_info(action)
+
+    def add_input_info(self, action):
+        HumanAgent.INPUT_PROMPT = action.INPUT_PROMPT
+        HumanAgent.INPUT_PARSER = action.parse_action
 
     def search(self, state, allotted_time):
         """
@@ -33,13 +36,11 @@ class HumanAgent(Agent):
 
         return player_action
 
-    def take_action(self, action):
+    def _take_action(self, action):
         pass
 
-    @staticmethod
-    def add_input_info(input_prompt, input_parser):
-        HumanAgent.INPUT_PROMPT = input_prompt
-        HumanAgent.INPUT_PARSER = input_parser
+    def _reset(self):
+        pass
 
     def __str__(self):
         return ""
