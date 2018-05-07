@@ -3,6 +3,7 @@ import random
 
 from util import zero_gen, one_neg_one_gen, ReplayBuffer
 from architectures import NestedTTTNet
+from agents import AlphaMCTSAgent
 
 class SelfPlayTrainer:
     def __init__(self, agent, game, buffer_file = None, weights_file = None, n_batches = 0):
@@ -82,7 +83,7 @@ class SelfPlayTrainer:
                 move, _ = agents[player_num].search(game.copy(), turn_num, allotted_playouts = 800)
                 _, _ = agents[1 - player_num].search(game.copy(), turn_num, allotted_playouts = 800)
 
-                result = self.game.make_move(move)
+                result = game.make_move(move)
                 if not result:
                     game.switch_player()
                     agents[0].take_action(move)
@@ -91,8 +92,10 @@ class SelfPlayTrainer:
 
             if not result:
                 ties += 1
-            elif result and current_player == 1:
+            elif result and player_num == 1:
                 wins += 1
+
+            print("After {} games, {} wins and {} ties".format(game_num+1, wins, ties))
 
         if wins + .5 * ties >= 55:
             print("Challenger network won {} games and tied {} games; it becomes new control network".format(wins, ties))
