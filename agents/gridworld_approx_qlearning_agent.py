@@ -1,7 +1,7 @@
 from agents.approx_qlearning_agent import ApproxQLearningAgent
 
 
-class GridworldQLearningAgent(ApproxQLearningAgent):
+class GridworldApproxQLearningAgent(ApproxQLearningAgent):
     """
     """
     
